@@ -1,0 +1,58 @@
+name: 이슈 생성
+description: Repo에 이슈 생성, 생성된 이슈는 Jira와 연동
+title: "[TYPE] 이슈 제목"
+labels: []
+assignees: []
+
+body:
+  - type: input
+    id: parentKey
+    attributes:
+      label: '📄상위 작업(Jira Ticket Number)'
+      description: Jira에서 상위 작업의 Ticket Number를 기입(URECA-n)
+      placeholder: URECA-1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: '📌이슈 타입(Issue Type)'
+      options:
+        - Feat
+        - Fix
+        - Hotfix
+        - Style
+        - Docs
+        - Refactor
+        - Chore
+    validations:
+      required: true
+
+  - type: input
+    id: branch
+    attributes:
+      label: '🌳브랜치명(Branch)'
+      description: 영어로 브랜치명 작성
+      placeholder: add-order-api
+    validations:
+      required: true
+
+  - type: input
+    id: description
+    attributes:
+      label: '📝상세 내용(Description)'
+      description: '이슈에 대한 간략한 설명'
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: '✅체크리스트(Tasks)'
+      description: 해당 이슈에 대해 필요한 작업 목록을 작성
+      value: |
+        - [ ] Task 1
+        - [ ] Task 2
+    validations:
+      required: true
