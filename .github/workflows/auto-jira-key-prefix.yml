@@ -1,12 +1,9 @@
-name: Auto Jira Key Prefix
+name: Auto Jira Key Prefix (Last Commit Only)
 
 on:
-  pull_request:
-    types: [opened, edited]
-
   push:
     branches:
-      - '**'  # 모든 브랜치에서 커밋 감지
+      - '**'  # 모든 브랜치에서 감지
 
 jobs:
   add-jira-key:
@@ -15,36 +12,38 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1  # 마지막 커밋만 가져오기, 전체 히스토리 불필요
 
-      - name: Prefix multiple commits with Jira issue key
+      - name: Prefix last commit with Jira issue key
         if: github.event_name == 'push'
         run: |
           set -e
+          
           # 브랜치 이름 추출
           BRANCH_NAME="${GITHUB_REF#refs/heads/}"
           ISSUE_KEY=$(echo "$BRANCH_NAME" | grep -oE '[A-Z]+-[0-9]+')
+          
           if [ -z "$ISSUE_KEY" ]; then
-            echo "⚠️ Branch name does not contain Jira key. Skipping commit prefix."
+            echo "⚠️ Branch name does not contain Jira key. Skipping."
             exit 0
           fi
-      
+          
           echo "✅ Jira key detected from branch: $ISSUE_KEY"
-      
-          # origin/main 기준으로 새 커밋 목록 가져오기
-          COMMITS=$(git rev-list --reverse origin/main..HEAD)
-      
-          # 커밋별로 Jira 키 prefix 추가
-          for HASH in $COMMITS; do
-            # 커밋 메시지 가져오기
-            MSG=$(git log -1 --pretty=%B "$HASH")
-            
-            # 이미 키가 있으면 건너뜀
-            if [[ "$MSG" =~ \[$ISSUE_KEY\] ]]; then
-              echo "⏭ Commit $HASH already has Jira key"
-              continue
-            fi
-      
-            # 메시지 수정
-            git filter-branch -f --msg-filter "echo [$ISSUE_KEY] $MSG" "$HASH"^.."$HASH"
-            echo "✅ Commit $HASH amended with [$ISSUE_KEY]"
-          done
+
+          # 마지막 커밋 메시지 가져오기
+          LAST_COMMIT_MSG=$(git log -1 --pretty=%B)
+
+          # 이미 Jira 키가 붙어 있으면 건너뜀
+          if [[ "$LAST_COMMIT_MSG" =~ \[$ISSUE_KEY\] ]]; then
+            echo "⏭ Last commit already contains Jira key. Nothing to do."
+            exit 0
+          fi
+
+          # 마지막 커밋 메시지 수정
+          git commit --amend -m "[$ISSUE_KEY] $LAST_COMMIT_MSG"
+          echo "✅ Last commit amended with [$ISSUE_KEY]"
+
+          # PR merge 후 main에 반영 시에는 force push 필요 없음 (squash merge 권장)
+          # 필요하다면 로컬 브랜치에서만 테스트 후 아래 주석 해제
+          # git push --force-with-lease
