@@ -1,0 +1,56 @@
+name: Auto Jira Key Prefix
+
+on:
+  pull_request:
+    types: [opened, edited]
+
+  push:
+    branches:
+      - '**'  # 모든 브랜치에서 커밋 감지
+
+jobs:
+  add-jira-key:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Prefix PR title with Jira issue key
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = github.event.pull_request
+            const branchName = pr.head.ref
+            const keyMatch = branchName.match(/[A-Z]+-\d+/)
+            if (keyMatch && !pr.title.includes(keyMatch[0])) {
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                title: `[${keyMatch[0]}] ${pr.title}`
+              })
+              console.log(`✅ PR title updated with Jira key: ${keyMatch[0]}`)
+            }
+
+      - name: Prefix new commits with Jira issue key
+        if: github.event_name == 'push'
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          ISSUE_KEY=$(echo "$BRANCH_NAME" | grep -oE '[A-Z]+-[0-9]+')
+          if [ -z "$ISSUE_KEY" ]; then
+            echo "⚠️ Branch name does not contain Jira key. Skipping commit prefix."
+            exit 0
+          fi
+
+          echo "✅ Jira key detected from branch: $ISSUE_KEY"
+
+          COMMITS=$(git rev-list --no-merges --format=%B --reverse origin/main..HEAD | grep -v '^commit ')
+
+          for COMMIT in $COMMITS; do
+            if [[ ! "$COMMIT" =~ \[$ISSUE_KEY\] ]]; then
+              git commit --amend -m "[$ISSUE_KEY] $COMMIT"
+              echo "✅ Commit amended: [$ISSUE_KEY] $COMMIT"
+            fi
+          done
