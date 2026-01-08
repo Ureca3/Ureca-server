@@ -1,6 +1,6 @@
 name: 이슈 생성
 description: Repo에 이슈 생성, 생성된 이슈는 Jira와 연동
-title: "[TYPE] 이슈 제목"
+title: "이슈 제목"
 labels: []
 assignees: []
 
@@ -33,7 +33,7 @@ body:
     id: branch
     attributes:
       label: '🌳브랜치명(Branch)'
-      description: 영어로 브랜치명 작성
+      description: 간결하게
       placeholder: add-order-api
     validations:
       required: true
