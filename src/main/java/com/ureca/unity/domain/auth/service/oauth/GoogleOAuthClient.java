@@ -87,6 +87,11 @@ public class GoogleOAuthClient implements OAuthClient {
 
         Map<String, Object> body = response.getBody();
 
+        String name = (String) body.get("name");
+        if (name == null || name.isBlank()) {
+            name = "google_user";
+        }
+
         return OAuthUserInfo.builder()
                 .provider("google")
                 .providerId(body.get("id").toString())

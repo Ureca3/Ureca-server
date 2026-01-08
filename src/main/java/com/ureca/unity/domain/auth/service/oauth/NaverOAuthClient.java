@@ -91,6 +91,11 @@ public class NaverOAuthClient implements OAuthClient {
         Map<String, Object> responseBody =
                 (Map<String, Object>) response.getBody().get("response");
 
+        String name = (String) responseBody.get("name");
+        if (name == null || name.isBlank()) {
+            name = "naver_user";
+        }
+
         return OAuthUserInfo.builder()
                 .provider("naver")
                 .providerId(responseBody.get("id").toString())
