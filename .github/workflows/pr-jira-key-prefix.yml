@@ -8,12 +8,17 @@ jobs:
   set-jira-key:
     runs-on: ubuntu-latest
     steps:
-      - name: Extract Jira Key
+      - name: Extract Jira Key & Issue Type
         id: jira
         run: |
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+      
           JIRA_KEY=$(echo "$BRANCH_NAME" | grep -oE '^[A-Z]+-[0-9]+')
+          ISSUE_TYPE=$(echo "$BRANCH_NAME" | cut -d'/' -f2)
+      
           echo "jira_key=$JIRA_KEY" >> $GITHUB_OUTPUT
+          echo "issue_type=$ISSUE_TYPE" >> $GITHUB_OUTPUT
+
 
       - name: Update PR title
         if: steps.jira.outputs.jira_key != ''
@@ -21,12 +26,16 @@ jobs:
         with:
           script: |
             const jiraKey = '${{ steps.jira.outputs.jira_key }}';
+            const issueType = '${{ steps.jira.outputs.issue_type }}';
             const pr = context.payload.pull_request;
-            if (!pr.title.startsWith(`[${jiraKey}]`)) {
+      
+            const prefix = `[${jiraKey}] ${issueType}:`;
+      
+            if (!pr.title.startsWith(prefix)) {
               await github.rest.pulls.update({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 pull_number: pr.number,
-                title: `[${jiraKey}] ${pr.title}`,
+                title: `${prefix} ${pr.title.replace(/^\[[^\]]+\](\[[^\]]+\])?\s*/, '')}`,
               });
             }
