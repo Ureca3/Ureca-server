@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ureca.unity.domain.user.mapper.UserMapper">
+
+    <!-- provider + providerId로 사용자 조회 -->
+    <select id="findByProviderAndProviderId"
+            resultType="com.ureca.unity.domain.user.model.User">
+        SELECT
+            id,
+            provider,
+            provider_id AS providerId,
+            email,
+            name,
+            role
+        FROM users
+        WHERE provider = #{provider}
+          AND provider_id = #{providerId}
+    </select>
+
+    <!-- 신규 사용자 insert -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users (
+            provider,
+            provider_id,
+            email,
+            name,
+            role
+        ) VALUES (
+                     #{provider},
+                     #{providerId},
+                     #{email},
+                     #{name},
+                     #{role}
+                 )
+    </insert>
+
+</mapper>
