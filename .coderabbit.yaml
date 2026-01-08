@@ -1,0 +1,90 @@
+# ---------------------------------------------------------------- #
+# CodeRabbit 기본 설정 (언어 및 페르소나)
+# ---------------------------------------------------------------- #
+# 기본 언어
+language: "ko-KR"
+# 페르소나와 응답 톤앤매너 지시 (최대 200자)
+tone_instructions: >
+  당신은 Planit 프로젝트의 백엔드 코치입니다. 피드백은 명확·구체하고 문제 원인과 개선책을 함께 제시하세요. 리뷰는 교육적이며 공식 문서를 권장합니다. 개선 제안을 우선하고, 칭찬은 간결하고 위트 있게 남기세요.
+
+# ---------------------------------------------------------------- #
+# 코드 리뷰 기능 세부 설정
+# ---------------------------------------------------------------- #
+reviews:
+  # 리뷰의 전반적인 스타일 - chill: 덜 엄격, 부드러운 톤
+  profile: "chill"
+  # CodeRabbit의 코멘트를 모두 `resolve`할 경우, 자동 Approve
+  request_changes_workflow: false
+  # PR의 전체적인 변경 사항에 대한 요약 생성
+  high_level_summary: true
+  # 변경된 각 파일에 대한 요약 생성
+  changed_files_summary: false
+  # 코드의 실행 흐름을 보여주는 시퀀스 다이어그램 생성
+  sequence_diagrams: false
+  # 리뷰 요약에 재미 요소 (시) 포함
+  poem: false
+  # PR에 연결된 Issue를 분석 후 리뷰 컨텍스트에 활용
+  assess_linked_issues: true
+  # 연관된 다른 Issue를 찾아서 링크
+  related_issues: false
+  # 연관된 다른 PR을 찾아서 링크
+  related_prs: false
+  # PR에 적절한 레이블(e.g., 'bug', 'enhancement')을 제안
+  suggested_labels: false
+  # 제안된 레이블을 자동으로 PR에 적용
+  auto_apply_labels: false
+  # 이 PR을 리뷰할 만한 적절한 동료 리뷰어 추천
+  suggested_reviewers: false
+  # 추천된 리뷰어 자동 할당 여부
+  auto_assign_reviewers: false
+  auto_review:
+    # PR이 생성됐을 때
+    # `@coderabbitai review`를 코멘트에 입력하면 리뷰를 시작
+    enabled: true
+    # 이미 리뷰가 진행된 PR에 새로운 커밋이 추가될 때,
+    # 변경된 부분에 대해서만 자동으로 리뷰를 진행
+    auto_incremental_review: true
+    path_instructions:
+      # Java 소스 코드에 대한 리뷰 지침
+      - path: "src/main/java/**"
+        # 최대 2,000자
+        instructions: |
+          1. Java/Spring Boot 팀 코드 컨벤션(docs/code-convention.md) 및 공식 스타일 가이드(Java, Spring 공식 문서)를 우선적으로 반영하여, 가독성·안정성(예: Null-safety, 예외 처리)·테스트/유지보수 용이성·성능(예: JPA N+1 문제, 불필요한 객체 생성) 등을 검토해주세요.
+          2. 최신 Java/Spring 트렌드, Javadoc, 팀 스타일 통일성, 그리고 보안(예: SQL Injection, CSRF) 이슈도 함께 확인해 주세요.
+          3. 각 리뷰 포인트별로 문제점과 대안, 장단점을 논리적으로 제시하고, 필요한 경우 예시 코드도 추가해 주세요.
+          4. 리뷰는 꼭 필요한 부분에 집중해주고, 나머지는 캡션으로 설명해주세요.
+          5. 리뷰 남겨주는 부분은 해당 라인 범위의 코멘트에 작성해주세요.
+  tools:
+    gitleaks:
+      # 코드에 비밀 정보(Secrets)가 유출됐는지 검사
+      enabled: true
+
+# ---------------------------------------------------------------- #
+# 채팅 기능 세부 설정
+# ---------------------------------------------------------------- #
+chat:
+  # 사용자가 @coderabbitai 태그를 지정하지 않아도 GitHub Issue나 PR에서 자동으로 답글을 달 수 있도록 설정
+  auto_reply: true
+
+
+# ---------------------------------------------------------------- #
+# Knowledge Base 세부 설정
+# ---------------------------------------------------------------- #
+knowledge_base:
+  # 웹 검색을 통해 최신 정보나 문서를 참조할 수 있도록 허용
+  web_search:
+    enabled: true
+  # 레포지토리 내의 특정 파일을 AI의 코드 스타일 가이드라인으로 사용하도록 설정
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "docs/code-convention.md"
+  # CodeRabbit이 대화나 리뷰를 통해 학습한 내용을 어디에 저장하고 참조할지 범위 설정 'local'은 현재 레포지토리에 한정됨을 의미
+  learnings:
+    scope: "local"
+  # 이슈 정보를 참조할 범위 설정
+  issues:
+    scope: "local"
+  # PR 정보를 참조할 범위 설정
+  pull_requests:
+    scope: "local"
