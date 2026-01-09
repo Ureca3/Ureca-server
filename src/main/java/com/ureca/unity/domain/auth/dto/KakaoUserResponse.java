@@ -8,7 +8,7 @@ public class KakaoUserResponse {
 
     private Long id;
 
-    @JsonProperty("kakao_account")
+    @JsonProperty(value = "kakao_account", required = true)
     private KakaoAccount kakaoAccount;
 
     @Getter

@@ -15,6 +15,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Optional;
+
 @Component("kakao")
 @RequiredArgsConstructor
 public class KakaoOAuthClient implements OAuthClient {
@@ -81,6 +83,16 @@ public class KakaoOAuthClient implements OAuthClient {
 
         KakaoUserResponse body = response.getBody();
         if (body == null) throw new RuntimeException("Kakao user response is null");
+
+        String email = Optional.ofNullable(body.getKakaoAccount())
+            .map(KakaoUserResponse.KakaoAccount::getEmail)
+            .orElse(null);
+
+        String nickname = Optional.ofNullable(body.getKakaoAccount())
+            .map(KakaoUserResponse.KakaoAccount::getProfile)
+            .map(KakaoUserResponse.Profile::getNickname)
+            .orElse("Unknown");;
+
 
         return new OAuthUserInfo(
                 OAuthProvider.KAKAO.value(),
