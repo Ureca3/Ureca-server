@@ -100,7 +100,7 @@ public class NaverOAuthClient implements OAuthClient {
                 .provider("naver")
                 .providerId(responseBody.get("id").toString())
                 .email((String) responseBody.get("email"))   // nullable
-                .name((String) responseBody.get("name"))
+                .name(name)
                 .build();
     }
 }

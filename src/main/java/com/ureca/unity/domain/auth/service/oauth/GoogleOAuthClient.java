@@ -96,7 +96,7 @@ public class GoogleOAuthClient implements OAuthClient {
                 .provider("google")
                 .providerId(body.get("id").toString())
                 .email((String) body.get("email"))   // nullable
-                .name((String) body.get("name"))
+                .name(name)
                 .build();
     }
 }
