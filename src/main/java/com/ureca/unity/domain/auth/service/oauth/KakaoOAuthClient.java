@@ -1,7 +1,13 @@
 package com.ureca.unity.domain.auth.service.oauth;
 
+import com.ureca.unity.domain.auth.constant.OAuthProvider;
+import com.ureca.unity.domain.auth.dto.KakaoUserResponse;
 import com.ureca.unity.domain.auth.dto.OAuthUserInfo;
+import com.ureca.unity.domain.auth.dto.TokenResponse;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -9,7 +15,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
+import java.util.Optional;
 
 @Component("kakao")
 @RequiredArgsConstructor
@@ -18,15 +24,8 @@ public class KakaoOAuthClient implements OAuthClient {
     @Value("${oauth.kakao.client-id}")
     private String clientId;
 
-    // Client Secret 안 쓰는 경우면 application-local.yml에도 없어야 함
-    @Value("${oauth.kakao.client-secret:}")
+    @Value("${oauth.kakao.client-secret}")
     private String clientSecret;
-
-    @Value("${oauth.kakao.token-uri}")
-    private String tokenUri;
-
-    @Value("${oauth.kakao.user-info-uri}")
-    private String userInfoUri;
 
     @Value("${oauth.kakao.redirect-uri}")
     private String redirectUri;
@@ -34,91 +33,87 @@ public class KakaoOAuthClient implements OAuthClient {
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
-    public OAuthUserInfo getUserInfo(String authorizationCode) {
-        String accessToken = getAccessToken(authorizationCode);
-        return fetchUserInfo(accessToken);
+    public OAuthUserInfo getUserInfo(String code) {
+        String accessToken = getAccessToken(code);
+        if (accessToken == null || accessToken.isEmpty()) {
+            throw new RuntimeException("Failed to get Kakao access token");
+        }
+        return getUser(accessToken);
     }
 
-    /* 1. Authorization Code → Access Token */
     private String getAccessToken(String code) {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("grant_type", "authorization_code");
+        params.add("client_id", clientId);
+        params.add("client_secret", clientSecret);
+        params.add("redirect_uri", redirectUri);
+        params.add("code", code);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("grant_type", "authorization_code");
-        body.add("client_id", clientId);
-        body.add("redirect_uri", redirectUri);
-        body.add("code", code);
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
-        // Client Secret을 쓰는 경우만 포함
-        if (clientSecret != null && !clientSecret.isBlank()) {
-            body.add("client_secret", clientSecret);
-        }
-
-        HttpEntity<MultiValueMap<String, String>> request =
-                new HttpEntity<>(body, headers);
-
-        ResponseEntity<Map> response = restTemplate.exchange(
-                tokenUri,
-                HttpMethod.POST,
+        // TokenResponse는 Jackson이 인식할 수 있도록 기본 생성자 필요
+        TokenResponse response = restTemplate.postForObject(
+                "https://kauth.kakao.com/oauth/token",
                 request,
-                Map.class
+                TokenResponse.class
         );
 
-        if (response.getBody() == null || response.getBody().get("access_token") == null) {
-            throw new IllegalArgumentException("Failed to retrieve Kakao access token");
+        if (response == null || response.getAccessToken() == null) {
+            throw new RuntimeException("Kakao token response is null or invalid");
         }
 
-        return response.getBody().get("access_token").toString();
+        return response.getAccessToken();
     }
 
-    /* 2. Access Token → Kakao User Info */
-    @SuppressWarnings("unchecked")
-    private OAuthUserInfo fetchUserInfo(String accessToken) {
-
+    private OAuthUserInfo getUser(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
 
         HttpEntity<Void> request = new HttpEntity<>(headers);
 
-        ResponseEntity<Map> response = restTemplate.exchange(
-                userInfoUri,
+        ResponseEntity<KakaoUserResponse> response = restTemplate.exchange(
+                "https://kapi.kakao.com/v2/user/me",
                 HttpMethod.GET,
                 request,
-                Map.class
+                KakaoUserResponse.class
         );
 
-        if (response.getBody() == null || response.getBody().get("id") == null) {
-            throw new IllegalArgumentException("Failed to retrieve Kakao user info");
+        KakaoUserResponse body = response.getBody();
+        if (body == null) throw new RuntimeException("Kakao user response is null");
+
+        String email = Optional.ofNullable(body.getKakaoAccount())
+            .map(KakaoUserResponse.KakaoAccount::getEmail)
+            .orElse(null);
+
+        String nickname = Optional.ofNullable(body.getKakaoAccount())
+            .map(KakaoUserResponse.KakaoAccount::getProfile)
+            .map(KakaoUserResponse.Profile::getNickname)
+            .orElse("Unknown");;
+
+
+        return new OAuthUserInfo(
+                OAuthProvider.KAKAO.value(),
+                String.valueOf(body.getId()),
+                body.getKakaoAccount().getEmail(),
+                body.getKakaoAccount().getProfile().getNickname()
+        );
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class TokenResponse {
+        private String access_token;
+        private String token_type;
+        private String refresh_token;
+        private Long expires_in;
+        private String scope;
+
+        public String getAccessToken() {
+            return access_token;
         }
-
-        Map<String, Object> body = response.getBody();
-        Map<String, Object> kakaoAccount =
-                (Map<String, Object>) body.get("kakao_account");
-
-        String email = null;
-        String nickname = null;
-
-        if (kakaoAccount != null) {
-            email = (String) kakaoAccount.get("email");
-
-            Map<String, Object> profile =
-                    (Map<String, Object>) kakaoAccount.get("profile");
-            if (profile != null) {
-                nickname = (String) profile.get("nickname");
-            }
-        }
-
-        if (nickname == null || nickname.isBlank()) {
-            nickname = "kakao_user";
-        }
-
-        return OAuthUserInfo.builder()
-                .provider("kakao")
-                .providerId(body.get("id").toString())
-                .email(email)          // nullable (정상)
-                .name(nickname)        // nickname 사용
-                .build();
     }
 }
