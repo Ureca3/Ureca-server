@@ -19,13 +19,13 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class KakaoOAuthClient implements OAuthClient {
 
-    @Value("${kakao.client-id}")
+    @Value("${oauth.kakao.client-id}")
     private String clientId;
 
-    @Value("${kakao.client-secret}")
+    @Value("${oauth.kakao.client-secret}")
     private String clientSecret;
 
-    @Value("${kakao.redirect-uri}")
+    @Value("${oauth.kakao.redirect-uri}")
     private String redirectUri;
 
     private final RestTemplate restTemplate = new RestTemplate();
@@ -90,7 +90,6 @@ public class KakaoOAuthClient implements OAuthClient {
         );
     }
 
-    // TokenResponse DTO 예시
     @Getter
     @Setter
     @NoArgsConstructor
