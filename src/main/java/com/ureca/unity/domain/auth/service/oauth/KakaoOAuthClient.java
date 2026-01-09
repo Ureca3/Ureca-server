@@ -6,6 +6,7 @@ import com.ureca.unity.domain.auth.dto.OAuthUserInfo;
 import com.ureca.unity.domain.auth.dto.TokenResponse;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -15,12 +16,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 @Component("kakao")
+@RequiredArgsConstructor
 public class KakaoOAuthClient implements OAuthClient {
-
-    @Override
-    public OAuthProvider getProvider() {
-        return OAuthProvider.KAKAO;
-    }
 
     @Value("${kakao.client-id}")
     private String clientId;
