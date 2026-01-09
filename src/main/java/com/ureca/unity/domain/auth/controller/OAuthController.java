@@ -2,9 +2,7 @@ package com.ureca.unity.domain.auth.controller;
 
 import com.ureca.unity.domain.auth.constant.OAuthProvider;
 import com.ureca.unity.domain.auth.dto.OAuthLoginResponse;
-import com.ureca.unity.domain.auth.dto.OAuthUserInfo;
 import com.ureca.unity.domain.auth.service.OAuthService;
-import com.ureca.unity.domain.auth.service.oauth.OAuthClient;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
