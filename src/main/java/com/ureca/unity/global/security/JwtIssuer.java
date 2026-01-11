@@ -43,8 +43,6 @@ public class JwtIssuer {
     public TokenResponse issueAccessToken(Long userId) {
 
         long accessExp = props.accessExpirationSeconds();
-        System.out.println("🔥 accessExpirationSeconds = " + accessExp);
-        System.out.println("🔥 issuer = " + props.issuer());
         String accessToken = createToken(userId, accessExp);
 
         return TokenResponse.builder()
