@@ -5,6 +5,7 @@ import com.ureca.unity.domain.auth.dto.OAuthLoginResponse;
 import com.ureca.unity.domain.auth.service.OAuthService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
