@@ -3,6 +3,8 @@ package com.ureca.unity.domain.auth.service;
 import com.ureca.unity.domain.auth.dto.TokenResponse;
 import com.ureca.unity.domain.auth.model.RefreshToken;
 import com.ureca.unity.domain.auth.mapper.RefreshTokenMapper;
+import com.ureca.unity.global.exception.CustomException;
+import com.ureca.unity.global.exception.ErrorCode;
 import com.ureca.unity.global.security.JwtIssuer;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,11 +28,18 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         // 2. DB 조회
         RefreshToken savedToken = refreshTokenMapper.findByToken(refreshToken)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
+                .orElseThrow(() ->
+                        new CustomException(ErrorCode.REFRESH_TOKEN_INVALID)
+                );
+
+        if (savedToken.getExpiresAt() == null) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
+        }
 
         // 3. 만료 체크
         if (savedToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Refresh token expired");
+            refreshTokenMapper.deleteByToken(refreshToken); // 만료 토큰 정리
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
         }
 
         // 4. 새 AccessToken 발급
@@ -38,16 +47,21 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     private String extractRefreshToken(HttpServletRequest request) {
-        if (request.getCookies() == null) {
-            throw new IllegalArgumentException("Refresh token cookie missing");
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_MISSING);
         }
 
-        for (Cookie cookie : request.getCookies()) {
+        for (Cookie cookie : cookies) {
             if ("refreshToken".equals(cookie.getName())) {
-                return cookie.getValue();
+                String value = cookie.getValue();
+                if (value == null || value.isBlank()) {
+                    throw new CustomException(ErrorCode.REFRESH_TOKEN_MISSING);
+                }
+                return value;
             }
         }
 
-        throw new IllegalArgumentException("Refresh token cookie missing");
+        throw new CustomException(ErrorCode.REFRESH_TOKEN_MISSING);
     }
 }
