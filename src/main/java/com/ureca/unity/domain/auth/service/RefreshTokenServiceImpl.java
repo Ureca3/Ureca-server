@@ -1,0 +1,104 @@
+package com.ureca.unity.domain.auth.service;
+
+import com.ureca.unity.domain.auth.constant.JwtProperties;
+import com.ureca.unity.domain.auth.dto.TokenResponse;
+import com.ureca.unity.domain.auth.model.RefreshToken;
+import com.ureca.unity.domain.auth.mapper.RefreshTokenMapper;
+import com.ureca.unity.global.exception.CustomException;
+import com.ureca.unity.global.exception.ErrorCode;
+import com.ureca.unity.global.security.JwtIssuer;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+
+@Service
+@RequiredArgsConstructor
+public class RefreshTokenServiceImpl implements RefreshTokenService {
+
+    private final RefreshTokenMapper refreshTokenMapper;
+    private final JwtIssuer jwtIssuer;
+    private final JwtProperties jwtProperties;
+
+    @Override
+    public TokenResponse refreshAccessToken(HttpServletRequest request,
+                                            HttpServletResponse response) {
+
+        // 1. Cookie에서 refreshToken 추출
+        String refreshToken = extractRefreshToken(request);
+
+        // 2. DB 조회
+        RefreshToken savedToken = refreshTokenMapper.findByToken(refreshToken)
+                .orElseThrow(() ->
+                        new CustomException(ErrorCode.REFRESH_TOKEN_INVALID)
+                );
+
+        if (savedToken.getExpiresAt() == null) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
+        }
+
+        // 3. 만료 체크
+        if (savedToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            refreshTokenMapper.deleteByToken(refreshToken); // 만료 토큰 정리
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+        }
+
+        Long userId = savedToken.getUserId();
+
+        // 4. 기존 refreshToken 폐기 (Rotation 핵심)
+        refreshTokenMapper.deleteByToken(refreshToken);
+
+        // 5. 새 Access + Refresh 발급
+        TokenResponse newTokens = jwtIssuer.issueTokens(userId);
+
+        // 6. 새 refreshToken DB 저장
+        LocalDateTime expiresAt =
+                LocalDateTime.now()
+                        .plusSeconds(jwtProperties.refreshExpirationSeconds());
+
+        refreshTokenMapper.insert(
+                RefreshToken.builder()
+                        .userId(userId)
+                        .token(newTokens.getRefreshToken())
+                        .expiresAt(expiresAt)
+                        .build()
+        );
+
+        // 7. 새 refreshToken 쿠키 재설정
+        Cookie cookie = new Cookie("refreshToken", newTokens.getRefreshToken());
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false); // prod에서는 true
+        cookie.setPath("/api/auth/refresh");
+        cookie.setMaxAge((int) jwtProperties.refreshExpirationSeconds());
+
+        response.addCookie(cookie);
+
+        // 8. accessToken만 반환
+        return TokenResponse.builder()
+                .accessToken(newTokens.getAccessToken())
+                .accessTokenExpiresIn(newTokens.getAccessTokenExpiresIn())
+                .build();
+    }
+
+    private String extractRefreshToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_MISSING);
+        }
+
+        for (Cookie cookie : cookies) {
+            if ("refreshToken".equals(cookie.getName())) {
+                String value = cookie.getValue();
+                if (value == null || value.isBlank()) {
+                    throw new CustomException(ErrorCode.REFRESH_TOKEN_MISSING);
+                }
+                return value;
+            }
+        }
+
+        throw new CustomException(ErrorCode.REFRESH_TOKEN_MISSING);
+    }
+}
