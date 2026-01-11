@@ -1,10 +1,14 @@
 package com.ureca.unity.global.security;
 
+import com.ureca.unity.global.exception.ErrorCode;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -19,6 +23,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.jwtProvider = jwtProvider;
     }
 
+    private String resolveToken(HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        if (bearer != null && bearer.startsWith("Bearer ")) {
+            return bearer.substring(7);
+        }
+        return null;
+    }
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -26,22 +38,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
+        String token = resolveToken(request);
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
+        // 1️⃣ 토큰이 아예 없는 경우
+        if (token == null) {
+            request.setAttribute("authError", ErrorCode.TOKEN_MISSING);
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-            Long userId = jwtProvider.getUserId(token);
+        try {
+            // 2️⃣ 토큰 검증 시도
+            Authentication authentication = jwtProvider.getAuthentication(token);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            userId,        // principal
-                            null,
-                            List.of()
-                    );
+        } catch (ExpiredJwtException e) {
+            // 3️⃣ 토큰 만료
+            request.setAttribute("authError", ErrorCode.TOKEN_EXPIRED);
 
-            SecurityContextHolder.getContext()
-                    .setAuthentication(authentication);
+        } catch (JwtException | IllegalArgumentException e) {
+            // 4️⃣ 토큰 위조 / 변조
+            request.setAttribute("authError", ErrorCode.INVALID_TOKEN);
         }
 
         filterChain.doFilter(request, response);
