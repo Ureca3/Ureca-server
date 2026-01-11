@@ -35,7 +35,7 @@ public class OAuthController {
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(false);
-        refreshTokenCookie.setPath("/api/auth/refresh");
+        refreshTokenCookie.setPath("/api/auth");
         refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
 
         response.addCookie(refreshTokenCookie);
