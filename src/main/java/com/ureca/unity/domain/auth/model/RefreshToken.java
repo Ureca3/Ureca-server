@@ -1,4 +1,4 @@
-package com.ureca.unity.domain.auth.refresh.model;
+package com.ureca.unity.domain.auth.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

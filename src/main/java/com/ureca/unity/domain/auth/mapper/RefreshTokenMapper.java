@@ -1,6 +1,6 @@
-package com.ureca.unity.domain.auth.refresh.mapper;
+package com.ureca.unity.domain.auth.mapper;
 
-import com.ureca.unity.domain.auth.refresh.model.RefreshToken;
+import com.ureca.unity.domain.auth.model.RefreshToken;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.Optional;

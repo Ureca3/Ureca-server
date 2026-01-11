@@ -1,4 +1,4 @@
-package com.ureca.unity.domain.auth.service;
+package com.ureca.unity.global.security;
 
 import com.ureca.unity.domain.auth.constant.JwtProperties;
 import com.ureca.unity.domain.auth.dto.TokenResponse;
@@ -38,6 +38,17 @@ public class JwtIssuer {
                 .refreshToken(refreshToken)
                 .accessTokenExpiresIn(accessExp)
                 .refreshTokenExpiresIn(refreshExp)
+                .build();
+    }
+
+    public TokenResponse issueAccessToken(Long userId) {
+
+        long accessExp = props.accessExpirationSeconds();
+        String accessToken = createToken(userId, accessExp);
+
+        return TokenResponse.builder()
+                .accessToken(accessToken)
+                .accessTokenExpiresIn(accessExp)
                 .build();
     }
 

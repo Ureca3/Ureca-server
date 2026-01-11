@@ -7,6 +7,7 @@ import com.ureca.unity.domain.auth.dto.TokenResponse;
 import com.ureca.unity.domain.auth.service.oauth.OAuthClient;
 import com.ureca.unity.domain.user.mapper.UserMapper;
 import com.ureca.unity.domain.user.model.User;
+import com.ureca.unity.global.security.JwtIssuer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
