@@ -3,6 +3,7 @@ package com.ureca.unity.domain.auth.service;
 import com.ureca.unity.domain.auth.constant.OAuthProvider;
 import com.ureca.unity.domain.auth.dto.OAuthLoginResponse;
 import com.ureca.unity.domain.auth.dto.OAuthUserInfo;
+import com.ureca.unity.domain.auth.dto.TokenResponse;
 import com.ureca.unity.domain.auth.service.oauth.OAuthClient;
 import com.ureca.unity.domain.user.mapper.UserMapper;
 import com.ureca.unity.domain.user.model.User;
@@ -17,6 +18,8 @@ public class OAuthServiceImpl implements OAuthService {
 
     private final Map<String, OAuthClient> oauthClients;
     private final UserMapper userMapper;
+    private final JwtIssuer jwtIssuer;
+
 
     @Override
     public OAuthLoginResponse login(OAuthProvider provider, String authorizationCode) {
@@ -36,12 +39,13 @@ public class OAuthServiceImpl implements OAuthService {
                         userInfo.getProvider(),
                         userInfo.getProviderId()
                 )
-                .map(existingUser ->
-                        OAuthLoginResponse.builder()
-                                .token(null)                // JWT 아직 없음
-                                .requiresOnboarding(false)  // 기존 유저
-                                .build()
-                )
+                .map(existingUser -> {
+                    TokenResponse token = jwtIssuer.issueTokens(existingUser.getId());
+                    return OAuthLoginResponse.builder()
+                            .token(token)                // JWT 아직 없음
+                            .requiresOnboarding(false)  // 기존 유저
+                            .build();
+                })
                 .orElseGet(() -> {
                     // 4. 신규 사용자 생성
                     User newUser = User.builder()
@@ -54,8 +58,10 @@ public class OAuthServiceImpl implements OAuthService {
 
                     userMapper.insert(newUser);
 
+                    TokenResponse token = jwtIssuer.issueTokens(newUser.getId());
+
                     return OAuthLoginResponse.builder()
-                            .token(null)
+                            .token(token)
                             .requiresOnboarding(true)   // 신규 유저
                             .build();
                 });
