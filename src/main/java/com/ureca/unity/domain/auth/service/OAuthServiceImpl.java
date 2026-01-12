@@ -3,6 +3,7 @@ package com.ureca.unity.domain.auth.service;
 import com.ureca.unity.domain.auth.constant.JwtProperties;
 import com.ureca.unity.domain.auth.constant.OAuthProvider;
 import com.ureca.unity.domain.auth.dto.OAuthLoginResponse;
+import com.ureca.unity.domain.auth.dto.OAuthLoginResult;
 import com.ureca.unity.domain.auth.dto.OAuthUserInfo;
 import com.ureca.unity.domain.auth.dto.TokenResponse;
 import com.ureca.unity.domain.auth.mapper.RefreshTokenMapper;
@@ -29,7 +30,7 @@ public class OAuthServiceImpl implements OAuthService {
     private final JwtProperties jwtProperties;
 
     @Override
-    public OAuthLoginResponse login(OAuthProvider provider, String authorizationCode) {
+    public OAuthLoginResult login(OAuthProvider provider, String authorizationCode) {
         // 1. OAuthClient 선택
         OAuthClient oAuthClient = oauthClients.get(provider.value());
         if (oAuthClient == null) {
@@ -47,14 +48,15 @@ public class OAuthServiceImpl implements OAuthService {
                 )
                 .map(existingUser -> {
 
-                    TokenResponse token = jwtIssuer.issueTokens(existingUser.getId());
+                    String refreshToken = jwtIssuer.issueRefreshToken(existingUser.getId());
+                    saveRefreshToken(existingUser.getId(), refreshToken);
 
-                    saveRefreshToken(existingUser.getId(), token.getRefreshToken());
+                    TokenResponse accessToken = jwtIssuer.issueAccessToken(existingUser.getId());
 
-                    return OAuthLoginResponse.builder()
-                            .token(token)                // JWT 아직 없음
+                    return new OAuthLoginResult(OAuthLoginResponse.builder()
+                            .token(accessToken)
                             .requiresOnboarding(false)  // 기존 유저
-                            .build();
+                            .build(), refreshToken);
                 })
                 .orElseGet(() -> {
                     // 4. 신규 사용자 생성
@@ -68,14 +70,16 @@ public class OAuthServiceImpl implements OAuthService {
 
                     userMapper.insert(newUser);
 
-                    TokenResponse token = jwtIssuer.issueTokens(newUser.getId());
+                    String refreshToken = jwtIssuer.issueRefreshToken(newUser.getId());
+                    saveRefreshToken(newUser.getId(), refreshToken);
 
-                    saveRefreshToken(newUser.getId(), token.getRefreshToken());
+                    TokenResponse accessToken = jwtIssuer.issueAccessToken(newUser.getId());
 
-                    return OAuthLoginResponse.builder()
-                            .token(token)
-                            .requiresOnboarding(true)   // 신규 유저
-                            .build();
+                    return new OAuthLoginResult(
+                            OAuthLoginResponse.builder()
+                            .token(accessToken)
+                            .requiresOnboarding(true)  // 신규 유저
+                            .build(), refreshToken);
                 });
     }
 

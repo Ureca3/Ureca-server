@@ -24,22 +24,6 @@ public class JwtIssuer {
         );
     }
 
-    public TokenResponse issueTokens(Long userId) {
-
-        long accessExp = props.accessExpirationSeconds();
-        long refreshExp = props.refreshExpirationSeconds();
-
-        String accessToken = createToken(userId, accessExp);
-        String refreshToken = createToken(userId, refreshExp);
-
-        return TokenResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .accessTokenExpiresIn(accessExp)
-                .refreshTokenExpiresIn(refreshExp)
-                .build();
-    }
-
     public TokenResponse issueAccessToken(Long userId) {
 
         long accessExp = props.accessExpirationSeconds();
@@ -49,6 +33,10 @@ public class JwtIssuer {
                 .accessToken(accessToken)
                 .accessTokenExpiresIn(accessExp)
                 .build();
+    }
+
+    public String issueRefreshToken(Long userId) {
+        return createToken(userId, props.refreshExpirationSeconds());
     }
 
     private String createToken(Long userId, long expSeconds) {

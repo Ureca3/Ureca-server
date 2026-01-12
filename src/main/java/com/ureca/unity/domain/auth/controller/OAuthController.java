@@ -3,6 +3,7 @@ package com.ureca.unity.domain.auth.controller;
 import com.ureca.unity.domain.auth.constant.JwtProperties;
 import com.ureca.unity.domain.auth.constant.OAuthProvider;
 import com.ureca.unity.domain.auth.dto.OAuthLoginResponse;
+import com.ureca.unity.domain.auth.dto.OAuthLoginResult;
 import com.ureca.unity.domain.auth.service.OAuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,14 +31,9 @@ public class OAuthController {
             @RequestParam @NotBlank String code,
             HttpServletResponse response
     ) {
-        OAuthLoginResponse loginResponse = oAuthService.login(
-                OAuthProvider.from(provider),
-                code
-        );
+        OAuthLoginResult result = oAuthService.login(OAuthProvider.from(provider), code);
 
-        String refreshToken = loginResponse.getToken().getRefreshToken();
-
-        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        Cookie refreshTokenCookie = new Cookie("refreshToken", result.refreshToken());
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(cookieSecure);
         refreshTokenCookie.setPath("/api/auth");
@@ -46,7 +42,7 @@ public class OAuthController {
 
         response.addCookie(refreshTokenCookie);
 
-        return loginResponse;
+        return result.response();
     }
 
     // refresh / logout은 추후 security 레이어에서 추가
