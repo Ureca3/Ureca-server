@@ -1,6 +1,7 @@
 package com.ureca.unity.domain.auth.controller;
 
 import com.ureca.unity.domain.auth.service.LogoutService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +18,18 @@ public class LogoutController {
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.OK)
     public void logout(
-            HttpServletRequest request,
+            @CookieValue(name = "refreshToken", required = false) String refreshToken,
             HttpServletResponse response
     ) {
-        logoutService.logout(request, response);
+        logoutService.logout(refreshToken);
+        clearRefreshTokenCookie(response);
+    }
+
+    private void clearRefreshTokenCookie(HttpServletResponse response) {
+        Cookie cookie = new Cookie("refreshToken", null);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/api/auth");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
     }
 }
