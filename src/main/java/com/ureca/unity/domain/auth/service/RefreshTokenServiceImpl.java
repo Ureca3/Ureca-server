@@ -7,6 +7,7 @@ import com.ureca.unity.domain.auth.mapper.RefreshTokenMapper;
 import com.ureca.unity.global.exception.CustomException;
 import com.ureca.unity.global.exception.ErrorCode;
 import com.ureca.unity.global.security.JwtIssuer;
+import com.ureca.unity.global.util.CookieUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -78,7 +79,12 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         cookie.setPath("/api/auth/refresh");
         cookie.setMaxAge((int) jwtProperties.refreshExpirationSeconds());
 
-        response.addCookie(cookie);
+        response.addCookie(CookieUtils.createRefreshTokenCookie(
+                newRefreshToken,
+                jwtProperties.refreshExpirationSeconds(),
+                false
+                )
+        );
 
         // 9. accessToken만 반환
         return accessToken;
