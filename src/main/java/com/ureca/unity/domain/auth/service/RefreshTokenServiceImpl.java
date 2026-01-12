@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -23,6 +24,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final JwtIssuer jwtIssuer;
     private final JwtProperties jwtProperties;
 
+    @Transactional
     @Override
     public TokenResponse refreshAccessToken(HttpServletRequest request,
                                             HttpServletResponse response) {
@@ -52,23 +54,25 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         refreshTokenMapper.deleteByToken(refreshToken);
 
         // 5. 새 Access + Refresh 발급
-        TokenResponse newTokens = jwtIssuer.issueTokens(userId);
+        TokenResponse accessToken = jwtIssuer.issueAccessToken(userId);
+        
+        // 6. 새 refreshToken 발급
+        String newRefreshToken = jwtIssuer.issueRefreshToken(userId);
 
-        // 6. 새 refreshToken DB 저장
-        LocalDateTime expiresAt =
-                LocalDateTime.now()
-                        .plusSeconds(jwtProperties.refreshExpirationSeconds());
+        // 7. DB 저장
 
         refreshTokenMapper.insert(
                 RefreshToken.builder()
                         .userId(userId)
-                        .token(newTokens.getRefreshToken())
-                        .expiresAt(expiresAt)
+                        .token(newRefreshToken)
+                        .expiresAt(LocalDateTime.now()
+                                        .plusSeconds(jwtProperties.refreshExpirationSeconds())
+                        )
                         .build()
         );
 
-        // 7. 새 refreshToken 쿠키 재설정
-        Cookie cookie = new Cookie("refreshToken", newTokens.getRefreshToken());
+        // 8. 새 refreshToken 쿠키 재설정
+        Cookie cookie = new Cookie("refreshToken", newRefreshToken);
         cookie.setHttpOnly(true);
         cookie.setSecure(false); // prod에서는 true
         cookie.setPath("/api/auth/refresh");
@@ -76,11 +80,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         response.addCookie(cookie);
 
-        // 8. accessToken만 반환
-        return TokenResponse.builder()
-                .accessToken(newTokens.getAccessToken())
-                .accessTokenExpiresIn(newTokens.getAccessTokenExpiresIn())
-                .build();
+        // 9. accessToken만 반환
+        return accessToken;
     }
 
     private String extractRefreshToken(HttpServletRequest request) {
