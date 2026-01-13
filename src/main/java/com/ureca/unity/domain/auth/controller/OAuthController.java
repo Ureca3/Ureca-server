@@ -5,6 +5,7 @@ import com.ureca.unity.domain.auth.constant.OAuthProvider;
 import com.ureca.unity.domain.auth.dto.OAuthLoginResponse;
 import com.ureca.unity.domain.auth.dto.OAuthLoginResult;
 import com.ureca.unity.domain.auth.service.OAuthService;
+import com.ureca.unity.global.util.CookieUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotBlank;
@@ -33,15 +34,13 @@ public class OAuthController {
     ) {
         OAuthLoginResult result = oAuthService.login(OAuthProvider.from(provider), code);
 
-        Cookie refreshTokenCookie = new Cookie("refreshToken", result.refreshToken());
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(cookieSecure);
-        refreshTokenCookie.setPath("/api/auth");
-        refreshTokenCookie.setMaxAge((int) jwtProperties.refreshExpirationSeconds());
-        refreshTokenCookie.setAttribute("SameSite", "Strict");
-
-        response.addCookie(refreshTokenCookie);
-
+        response.addCookie(
+            CookieUtils.createRefreshTokenCookie(
+                    result.refreshToken(),
+                    jwtProperties.refreshExpirationSeconds(),
+                    cookieSecure
+            )
+        );
         return result.response();
     }
 

@@ -19,9 +19,14 @@ public class JwtIssuer {
 
     public JwtIssuer(JwtProperties props) {
         this.props = props;
-        this.key = Keys.hmacShaKeyFor(
-                props.secret().getBytes(StandardCharsets.UTF_8)
-        );
+        byte[] secretBytes = props.secret().getBytes(StandardCharsets.UTF_8);
+        if (secretBytes.length < 32) {
+            throw new IllegalArgumentException(
+                    "JWT secret must be at least 256 bits (32 bytes) for HS256"
+            );
+        }
+
+        this.key = Keys.hmacShaKeyFor(secretBytes);
     }
 
     public TokenResponse issueAccessToken(Long userId) {
