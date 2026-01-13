@@ -5,7 +5,7 @@ import jakarta.servlet.http.Cookie;
 public class CookieUtils {
 
     // private CookieUtils() {}
-    private static final String REFRESH_TOKEN = "refreshToken";
+    public static final String REFRESH_TOKEN = "refreshToken";
     private static final String PATH = "/api/auth";
 
     public static Cookie createRefreshTokenCookie(

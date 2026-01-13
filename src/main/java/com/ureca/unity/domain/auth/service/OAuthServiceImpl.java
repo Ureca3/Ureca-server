@@ -7,7 +7,6 @@ import com.ureca.unity.domain.auth.dto.OAuthLoginResult;
 import com.ureca.unity.domain.auth.dto.OAuthUserInfo;
 import com.ureca.unity.domain.auth.dto.TokenResponse;
 import com.ureca.unity.domain.auth.mapper.RefreshTokenMapper;
-import com.ureca.unity.domain.auth.model.RefreshToken;
 import com.ureca.unity.domain.auth.service.oauth.OAuthClient;
 import com.ureca.unity.domain.user.mapper.UserMapper;
 import com.ureca.unity.domain.user.model.User;
@@ -25,9 +24,7 @@ public class OAuthServiceImpl implements OAuthService {
     private final Map<String, OAuthClient> oauthClients;
     private final UserMapper userMapper;
     private final JwtIssuer jwtIssuer;
-
-    private final RefreshTokenMapper refreshTokenMapper;
-    private final JwtProperties jwtProperties;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     public OAuthLoginResult login(OAuthProvider provider, String authorizationCode) {
@@ -49,7 +46,8 @@ public class OAuthServiceImpl implements OAuthService {
                 .map(existingUser -> {
 
                     String refreshToken = jwtIssuer.issueRefreshToken(existingUser.getId());
-                    saveRefreshToken(existingUser.getId(), refreshToken);
+                    refreshTokenService.saveRefreshToken(existingUser.getId(), refreshToken);
+
 
                     TokenResponse accessToken = jwtIssuer.issueAccessToken(existingUser.getId());
 
@@ -71,7 +69,7 @@ public class OAuthServiceImpl implements OAuthService {
                     userMapper.insert(newUser);
 
                     String refreshToken = jwtIssuer.issueRefreshToken(newUser.getId());
-                    saveRefreshToken(newUser.getId(), refreshToken);
+                    refreshTokenService.saveRefreshToken(newUser.getId(), refreshToken);
 
                     TokenResponse accessToken = jwtIssuer.issueAccessToken(newUser.getId());
 
@@ -81,20 +79,5 @@ public class OAuthServiceImpl implements OAuthService {
                             .requiresOnboarding(true)  // 신규 유저
                             .build(), refreshToken);
                 });
-    }
-
-    private void saveRefreshToken(Long userId, String refreshToken) {
-        refreshTokenMapper.deleteByUserId(userId); // 기존 토큰 정리 (선택 but 추천)
-
-        refreshTokenMapper.insert(
-                RefreshToken.builder()
-                        .userId(userId)
-                        .token(refreshToken)
-                        .expiresAt(
-                                LocalDateTime.now()
-                                        .plusSeconds(jwtProperties.refreshExpirationSeconds())
-                        )
-                        .build()
-        );
     }
 }

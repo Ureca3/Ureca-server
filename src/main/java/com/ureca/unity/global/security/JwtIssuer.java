@@ -45,6 +45,10 @@ public class JwtIssuer {
     }
 
     private String createToken(Long userId, long expSeconds) {
+        if (userId == null) {
+            throw new IllegalArgumentException("userId must not be null");
+        }
+
         Instant now = Instant.now();
 
         return Jwts.builder()

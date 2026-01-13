@@ -29,6 +29,22 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Value("${cookie.secure:false}")
     private boolean cookieSecure;
 
+    @Override
+    public void saveRefreshToken(Long userId, String refreshToken) {
+        refreshTokenMapper.deleteByUserId(userId);
+
+        refreshTokenMapper.insert(
+                RefreshToken.builder()
+                        .userId(userId)
+                        .token(refreshToken)
+                        .expiresAt(
+                                LocalDateTime.now()
+                                        .plusSeconds(jwtProperties.refreshExpirationSeconds())
+                        )
+                        .build()
+        );
+    }
+
     @Transactional
     @Override
     public TokenResponse refreshAccessToken(HttpServletRequest request,
@@ -55,7 +71,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         Long userId = savedToken.getUserId();
 
-        // 4. 기존 refreshToken 폐기 (Rotation 핵심)
+        // 4. 기존 refreshToken 폐기 (Rotation)
         refreshTokenMapper.deleteByToken(refreshToken);
 
         // 5. 새 Access + Refresh 발급
@@ -66,15 +82,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         // 7. DB 저장
 
-        refreshTokenMapper.insert(
-                RefreshToken.builder()
-                        .userId(userId)
-                        .token(newRefreshToken)
-                        .expiresAt(LocalDateTime.now()
-                                        .plusSeconds(jwtProperties.refreshExpirationSeconds())
-                        )
-                        .build()
-        );
+        saveRefreshToken(userId, newRefreshToken);
 
         response.addCookie(CookieUtils.createRefreshTokenCookie(
                 newRefreshToken,
@@ -94,7 +102,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         }
 
         for (Cookie cookie : cookies) {
-            if ("refreshToken".equals(cookie.getName())) {
+            if (CookieUtils.REFRESH_TOKEN.equals(cookie.getName())) {
                 String value = cookie.getValue();
                 if (value == null || value.isBlank()) {
                     throw new CustomException(ErrorCode.REFRESH_TOKEN_MISSING);
