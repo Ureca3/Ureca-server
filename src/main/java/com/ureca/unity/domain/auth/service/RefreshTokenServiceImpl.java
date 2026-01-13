@@ -12,6 +12,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final RefreshTokenMapper refreshTokenMapper;
     private final JwtIssuer jwtIssuer;
     private final JwtProperties jwtProperties;
+
+    @Value("${cookie.secure:false}")
+    private boolean cookieSecure;
 
     @Transactional
     @Override
@@ -72,21 +76,14 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                         .build()
         );
 
-        // 8. 새 refreshToken 쿠키 재설정
-        Cookie cookie = new Cookie("refreshToken", newRefreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false); // prod에서는 true
-        cookie.setPath("/api/auth/refresh");
-        cookie.setMaxAge((int) jwtProperties.refreshExpirationSeconds());
-
         response.addCookie(CookieUtils.createRefreshTokenCookie(
                 newRefreshToken,
                 jwtProperties.refreshExpirationSeconds(),
-                false
+                cookieSecure
                 )
         );
 
-        // 9. accessToken만 반환
+        // 8. accessToken만 반환
         return accessToken;
     }
 
