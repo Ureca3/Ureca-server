@@ -43,19 +43,8 @@ public class OAuthServiceImpl implements OAuthService {
                         userInfo.getProvider(),
                         userInfo.getProviderId()
                 )
-                .map(existingUser -> {
-
-                    String refreshToken = jwtIssuer.issueRefreshToken(existingUser.getId());
-                    refreshTokenService.saveRefreshToken(existingUser.getId(), refreshToken);
-
-
-                    TokenResponse accessToken = jwtIssuer.issueAccessToken(existingUser.getId());
-
-                    return new OAuthLoginResult(OAuthLoginResponse.builder()
-                            .token(accessToken)
-                            .requiresOnboarding(false)  // 기존 유저
-                            .build(), refreshToken);
-                })
+                .map(existingUser -> createLoginResult(existingUser.getId(), false)
+                )
                 .orElseGet(() -> {
                     // 4. 신규 사용자 생성
                     User newUser = User.builder()
@@ -65,19 +54,23 @@ public class OAuthServiceImpl implements OAuthService {
                             .name(userInfo.getName())
                             .role("ROLE_USER")
                             .build();
-
                     userMapper.insert(newUser);
 
-                    String refreshToken = jwtIssuer.issueRefreshToken(newUser.getId());
-                    refreshTokenService.saveRefreshToken(newUser.getId(), refreshToken);
-
-                    TokenResponse accessToken = jwtIssuer.issueAccessToken(newUser.getId());
-
-                    return new OAuthLoginResult(
-                            OAuthLoginResponse.builder()
-                            .token(accessToken)
-                            .requiresOnboarding(true)  // 신규 유저
-                            .build(), refreshToken);
+                    return createLoginResult(newUser.getId(), true);
                 });
+    }
+    private OAuthLoginResult createLoginResult(Long userId, boolean requiresOnboarding) {
+        String refreshToken = jwtIssuer.issueRefreshToken(userId);
+        refreshTokenService.saveRefreshToken(userId, refreshToken);
+
+        TokenResponse accessToken = jwtIssuer.issueAccessToken(userId);
+
+        return new OAuthLoginResult(
+                OAuthLoginResponse.builder()
+                        .token(accessToken)
+                        .requiresOnboarding(requiresOnboarding)
+                        .build(),
+                refreshToken
+        );
     }
 }

@@ -29,6 +29,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Value("${cookie.secure:false}")
     private boolean cookieSecure;
 
+    @Transactional
     @Override
     public void saveRefreshToken(Long userId, String refreshToken) {
         refreshTokenMapper.deleteByUserId(userId);
