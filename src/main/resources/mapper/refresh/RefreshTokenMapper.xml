@@ -28,7 +28,7 @@
         WHERE token = #{token}
     </select>
 
-    <delete id="deleteByToken">
+    <delete id="deleteByToken" parameterType="string">
         DELETE FROM refresh_tokens WHERE token = #{token}
     </delete>
 

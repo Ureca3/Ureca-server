@@ -12,7 +12,7 @@ public interface RefreshTokenMapper {
 
     Optional<RefreshToken> findByToken(String token);
 
-    void deleteByToken(String token);
+    int deleteByToken(String token);
 
     void deleteByUserId(Long userId);
 }

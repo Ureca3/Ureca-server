@@ -9,6 +9,7 @@ import com.ureca.unity.global.exception.ErrorCode;
 import com.ureca.unity.global.security.JwtIssuer;
 import com.ureca.unity.global.security.JwtProvider;
 import com.ureca.unity.global.util.CookieUtils;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -57,7 +58,12 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         String refreshToken = extractRefreshToken(request);
 
         // 1-1. JWT 서명 검증 (DB 조회 전)
-        Long jwtUserId = jwtProvider.getUserId(refreshToken);
+        Long jwtUserId;
+        try {
+            jwtUserId = jwtProvider.getUserId(refreshToken);
+        } catch (JwtException e) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
+        }
 
         // 2. DB 조회
         RefreshToken savedToken = refreshTokenMapper.findByToken(refreshToken)
@@ -83,7 +89,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         }
 
         // 4. 기존 refreshToken 폐기 (Rotation 로직 진입)
-        refreshTokenMapper.deleteByToken(refreshToken);
+        int deletedCount = refreshTokenMapper.deleteByToken(refreshToken);
+            if (deletedCount == 0) {
+                throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
+            }
 
         // 5. 새 Access + Refresh 발급
         TokenResponse accessToken = jwtIssuer.issueAccessToken(userId);
