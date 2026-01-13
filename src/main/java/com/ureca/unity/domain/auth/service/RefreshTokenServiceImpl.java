@@ -61,7 +61,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         Long jwtUserId;
         try {
             jwtUserId = jwtProvider.getUserId(refreshToken);
-        } catch (JwtException e) {
+        } catch (JwtException | IllegalArgumentException e) {
             throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
 
