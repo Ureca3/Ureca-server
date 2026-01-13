@@ -32,7 +32,7 @@ public class JwtIssuer {
     public TokenResponse issueAccessToken(Long userId) {
 
         long accessExp = props.accessExpirationSeconds();
-        String accessToken = createToken(userId, accessExp);
+        String accessToken = createToken(userId, accessExp, "access");
 
         return TokenResponse.builder()
                 .accessToken(accessToken)
@@ -41,10 +41,10 @@ public class JwtIssuer {
     }
 
     public String issueRefreshToken(Long userId) {
-        return createToken(userId, props.refreshExpirationSeconds());
+        return createToken(userId, props.refreshExpirationSeconds(), "refresh");
     }
 
-    private String createToken(Long userId, long expSeconds) {
+    private String createToken(Long userId, long expSeconds, String type) {
         if (userId == null) {
             throw new IllegalArgumentException("userId must not be null");
         }
@@ -54,6 +54,7 @@ public class JwtIssuer {
         return Jwts.builder()
                 .issuer(props.issuer())
                 .subject(String.valueOf(userId))
+                .claim("type", type)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusSeconds(expSeconds)))
                 .signWith(key, Jwts.SIG.HS256)

@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +42,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                         .userId(userId)
                         .token(refreshToken)
                         .expiresAt(
-                                LocalDateTime.now()
+                                Instant.now()
                                         .plusSeconds(jwtProperties.refreshExpirationSeconds())
                         )
                         .build()
@@ -60,7 +60,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         // 1-1. JWT 서명 검증 (DB 조회 전)
         Long jwtUserId;
         try {
-            jwtUserId = jwtProvider.getUserId(refreshToken);
+            jwtUserId = jwtProvider.getUserId(refreshToken, "refresh");
         } catch (JwtException | IllegalArgumentException e) {
             throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
@@ -76,7 +76,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         }
 
         // 3. 만료 체크
-        if (savedToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if (savedToken.getExpiresAt().isBefore(Instant.now())) {
             // 만료된 토큰은 즉시 삭제 후 예외 반환 (rotation 로직 미진입)
             refreshTokenMapper.deleteByToken(refreshToken); // 만료 토큰 정리
             throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
