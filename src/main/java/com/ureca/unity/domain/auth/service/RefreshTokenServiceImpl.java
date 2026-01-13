@@ -90,9 +90,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         // 4. 기존 refreshToken 폐기 (Rotation 로직 진입)
         int deletedCount = refreshTokenMapper.deleteByToken(refreshToken);
-            if (deletedCount == 0) {
-                throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
-            }
+        if (deletedCount == 0) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
+        }
 
         // 5. 새 Access + Refresh 발급
         TokenResponse accessToken = jwtIssuer.issueAccessToken(userId);
