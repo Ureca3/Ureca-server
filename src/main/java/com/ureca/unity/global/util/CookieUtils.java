@@ -13,6 +13,9 @@ public class CookieUtils {
             long maxAgeSeconds,
             boolean secure
     ) {
+        if (maxAgeSeconds > Integer.MAX_VALUE) {
+            maxAgeSeconds = Integer.MAX_VALUE;
+        }
         Cookie cookie = new Cookie(REFRESH_TOKEN, token);
         cookie.setHttpOnly(true);
         cookie.setSecure(secure);

@@ -1,20 +1,18 @@
 package com.ureca.unity.domain.auth.service;
 
-import com.ureca.unity.domain.auth.constant.JwtProperties;
 import com.ureca.unity.domain.auth.constant.OAuthProvider;
 import com.ureca.unity.domain.auth.dto.OAuthLoginResponse;
 import com.ureca.unity.domain.auth.dto.OAuthLoginResult;
 import com.ureca.unity.domain.auth.dto.OAuthUserInfo;
 import com.ureca.unity.domain.auth.dto.TokenResponse;
-import com.ureca.unity.domain.auth.mapper.RefreshTokenMapper;
 import com.ureca.unity.domain.auth.service.oauth.OAuthClient;
 import com.ureca.unity.domain.user.mapper.UserMapper;
 import com.ureca.unity.domain.user.model.User;
+import com.ureca.unity.global.exception.CustomException;
+import com.ureca.unity.global.exception.ErrorCode;
 import com.ureca.unity.global.security.JwtIssuer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 import java.util.Map;
 
 @Service
@@ -31,7 +29,7 @@ public class OAuthServiceImpl implements OAuthService {
         // 1. OAuthClient 선택
         OAuthClient oAuthClient = oauthClients.get(provider.value());
         if (oAuthClient == null) {
-            throw new IllegalArgumentException("OAuthClient not found for provider: " + provider);
+            throw new CustomException(ErrorCode.INVALID_OAUTH_PROVIDER);
         }
 
         // 2. OAuth 사용자 정보 조회

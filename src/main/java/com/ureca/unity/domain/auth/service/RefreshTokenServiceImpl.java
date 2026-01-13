@@ -7,6 +7,7 @@ import com.ureca.unity.domain.auth.mapper.RefreshTokenMapper;
 import com.ureca.unity.global.exception.CustomException;
 import com.ureca.unity.global.exception.ErrorCode;
 import com.ureca.unity.global.security.JwtIssuer;
+import com.ureca.unity.global.security.JwtProvider;
 import com.ureca.unity.global.util.CookieUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,6 +26,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final RefreshTokenMapper refreshTokenMapper;
     private final JwtIssuer jwtIssuer;
     private final JwtProperties jwtProperties;
+    private final JwtProvider jwtProvider;
 
     @Value("${cookie.secure:false}")
     private boolean cookieSecure;
@@ -54,6 +56,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         // 1. Cookie에서 refreshToken 추출
         String refreshToken = extractRefreshToken(request);
 
+        // 1-1. JWT 서명 검증 (DB 조회 전)
+        Long userId = jwtProvider.getUserId(refreshToken);
+
         // 2. DB 조회
         RefreshToken savedToken = refreshTokenMapper.findByToken(refreshToken)
                 .orElseThrow(() ->
@@ -66,13 +71,14 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         // 3. 만료 체크
         if (savedToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            // 만료된 토큰은 즉시 삭제 후 예외 반환 (rotation 로직 미진입)
             refreshTokenMapper.deleteByToken(refreshToken); // 만료 토큰 정리
             throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
         }
 
         Long userId = savedToken.getUserId();
 
-        // 4. 기존 refreshToken 폐기 (Rotation)
+        // 4. 기존 refreshToken 폐기 (Rotation 로직 진입)
         refreshTokenMapper.deleteByToken(refreshToken);
 
         // 5. 새 Access + Refresh 발급
