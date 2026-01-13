@@ -57,7 +57,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         String refreshToken = extractRefreshToken(request);
 
         // 1-1. JWT 서명 검증 (DB 조회 전)
-        Long userId = jwtProvider.getUserId(refreshToken);
+        Long jwtUserId = jwtProvider.getUserId(refreshToken);
 
         // 2. DB 조회
         RefreshToken savedToken = refreshTokenMapper.findByToken(refreshToken)
@@ -78,6 +78,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         Long userId = savedToken.getUserId();
 
+        if (!userId.equals(jwtUserId)) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
+        }
+
         // 4. 기존 refreshToken 폐기 (Rotation 로직 진입)
         refreshTokenMapper.deleteByToken(refreshToken);
 
@@ -88,9 +92,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         String newRefreshToken = jwtIssuer.issueRefreshToken(userId);
 
         // 7. DB 저장
-
         saveRefreshToken(userId, newRefreshToken);
 
+        // 8. 새 refreshToken 쿠키 설정
         response.addCookie(CookieUtils.createRefreshTokenCookie(
                 newRefreshToken,
                 jwtProperties.refreshExpirationSeconds(),
@@ -98,7 +102,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 )
         );
 
-        // 8. accessToken만 반환
+        // 9. accessToken만 반환
         return accessToken;
     }
 
