@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ureca.unity.domain.auth.mapper.RefreshTokenMapper">
+
+    <resultMap id="refreshTokenMap"
+               type="com.ureca.unity.domain.auth.model.RefreshToken">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="token" column="token"/>
+        <result property="expiresAt" column="expires_at"/>
+    </resultMap>
+
+    <insert id="insert">
+        INSERT INTO refresh_tokens (user_id, token, expires_at)
+        VALUES (#{userId}, #{token}, #{expiresAt})
+    </insert>
+
+    <select id="findByToken" resultMap="refreshTokenMap">
+        SELECT
+            id,
+            user_id,
+            token,
+            expires_at
+        FROM refresh_tokens
+        WHERE token = #{token}
+    </select>
+
+    <delete id="deleteByToken" parameterType="string">
+        DELETE FROM refresh_tokens WHERE token = #{token}
+    </delete>
+
+    <delete id="deleteByUserId">
+        DELETE FROM refresh_tokens WHERE user_id = #{userId}
+    </delete>
+
+</mapper>
