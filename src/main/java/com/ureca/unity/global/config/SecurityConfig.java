@@ -28,14 +28,9 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/api/auth/login/**",
                                 "/api/auth/refresh",
-
-                                // 🔴 여기 있던 잘못된 것 삭제
-                                // "/counselings/**/stt"
-
-                                // ✅ 이 줄로 교체
-                                "/counselings/*/stt"
-                        ).permitAll()
-
+                                "/counselings/*/stt",
+                                "/api/agora/**")
+                        .permitAll()
                         .requestMatchers("/api/auth/logout")
                         .authenticated()
                         .anyRequest().authenticated()
