@@ -31,7 +31,6 @@ public class SecurityConfig {
                                 "/api/auth/me",
                                 "/api/auth/logout",
                                 "/counselings/*/stt",
-                                "/counselings/*/stt",
                                 "/api/agora/**",
                                 "/api/recording/**")
                         .permitAll()
