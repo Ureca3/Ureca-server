@@ -41,3 +41,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# GCP
+gcp/*.json
+
+# env
+application-local.yml
