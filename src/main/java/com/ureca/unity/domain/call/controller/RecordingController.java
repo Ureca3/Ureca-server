@@ -1,42 +1,51 @@
 package com.ureca.unity.domain.call.controller;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
+import com.ureca.unity.domain.call.dto.request.RecordingRequest;
+import com.ureca.unity.domain.call.dto.request.RecordingStopRequest;
+import com.ureca.unity.domain.call.dto.response.RecordingResponse;
+import com.ureca.unity.domain.call.service.AgoraRecordingService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/agora/record")
+@RequestMapping("/api/recording")
+@CrossOrigin(origins = "http://localhost:3000")
+@RequiredArgsConstructor
 public class RecordingController {
 
-    @Value("${agora.appId}") private String appId;
-    @Value("${agora.appCert}") private String appCert;
+    private final AgoraRecordingService recordingService;
 
+    /**
+     * 녹음 시작 API
+     * acquire와 start를 동시에 진행하여 client에게 sid와 resourceId를 반환합니다.
+     */
     @PostMapping("/start")
-    public Map<String, Object> startRecording(@RequestBody Map<String, String> body) {
-        System.out.println("녹화 시작");
-        String channel = body.get("channel");
-        String customerUid = "1000"; // 가상 유저
-
-        // 1️⃣ Acquire
-        // 2️⃣ Start Recording
-        // TODO: HTTP 요청으로 Agora Cloud Recording REST API 호출
-        // 반환값: resourceId, sid
-        return Map.of("resourceId", "resource123", "sid", "sid123");
+    public ResponseEntity<RecordingResponse> startRecording(@RequestBody RecordingRequest request) {
+        try {
+            String resourceId = recordingService.acquire(request.channelName(), request.uid());
+            String sid = recordingService.start(resourceId, request.channelName(), request.uid(), request.token());
+            return ResponseEntity.ok(new RecordingResponse(resourceId, sid));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
+    /**
+     * 녹음 종료 API
+     */
     @PostMapping("/stop")
-    public Map<String, Object> stopRecording(@RequestBody Map<String, String> body) {
-        System.out.println("녹화 종료");
-        String channel = body.get("channel");
-        String resourceId = body.get("resourceId");
-        String sid = body.get("sid");
-
-        // Agora Cloud Recording stop API 호출
-        // 반환값: 녹음 파일 URL
-        return Map.of("recordingUrl", "https://s3.amazonaws.com/your-bucket/record.mp3");
+    public ResponseEntity<String> stopRecording(@RequestBody RecordingStopRequest request) {
+        try {
+            recordingService.stop(
+                    request.resourceId(),
+                    request.sid(),
+                    request.channelName(),
+                    request.uid()
+            );
+            return ResponseEntity.ok("Recording stopped successfully");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Failed to stop recording: " + e.getMessage());
+        }
     }
 }
