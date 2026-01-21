@@ -45,5 +45,7 @@ out/
 # GCP
 gcp/*.json
 
-# env
+# Spring secrets
 application-local.yml
+application-prod.yml
+
