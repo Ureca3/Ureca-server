@@ -29,7 +29,8 @@ public class SecurityConfig {
                                 "/api/auth/login/**",
                                 "/api/auth/refresh",
                                 "/counselings/*/stt",
-                                "/api/agora/**")
+                                "/api/agora/**",
+                                "/api/recording/**")
                         .permitAll()
                         .requestMatchers("/api/auth/logout")
                         .authenticated()
