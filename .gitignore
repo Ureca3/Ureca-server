@@ -41,3 +41,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+!**/src/main/resources/gcp/unity-stt.json
+src/main/resources/gcp/
