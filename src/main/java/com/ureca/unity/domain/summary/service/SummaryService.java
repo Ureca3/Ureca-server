@@ -7,6 +7,7 @@ import com.ureca.unity.domain.summary.dto.response.SummaryResponse;
 import com.ureca.unity.domain.summary.mapper.SummaryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,6 +20,7 @@ public class SummaryService {
     private final SummaryMapper summaryMapper;
     private final ObjectMapper objectMapper;
 
+    @Transactional
     public SummaryResponse createSummary(
             Long sttJobId,
             Long counselingId,
