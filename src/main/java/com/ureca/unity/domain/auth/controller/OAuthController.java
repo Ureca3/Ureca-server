@@ -43,6 +43,4 @@ public class OAuthController {
         );
         return result.response();
     }
-
-    // refresh / logout은 추후 security 레이어에서 추가
 }

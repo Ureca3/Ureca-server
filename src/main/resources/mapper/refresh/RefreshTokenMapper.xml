@@ -7,20 +7,23 @@
 
     <resultMap id="refreshTokenMap"
                type="com.ureca.unity.domain.auth.model.RefreshToken">
-        <id property="id" column="id"/>
+        <id property="id" column="refresh_token_id"/>
         <result property="userId" column="user_id"/>
         <result property="token" column="token"/>
         <result property="expiresAt" column="expires_at"/>
     </resultMap>
 
-    <insert id="insert">
+    <insert id="insert"
+            useGeneratedKeys="true"
+            keyProperty="id"
+            keyColumn="refresh_token_id">
         INSERT INTO refresh_tokens (user_id, token, expires_at)
         VALUES (#{userId}, #{token}, #{expiresAt})
     </insert>
 
     <select id="findByToken" resultMap="refreshTokenMap">
         SELECT
-            id,
+            refresh_token_id,
             user_id,
             token,
             expires_at
