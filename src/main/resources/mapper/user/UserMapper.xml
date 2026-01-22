@@ -9,7 +9,7 @@
     <select id="findByProviderAndProviderId"
             resultType="com.ureca.unity.domain.user.model.User">
         SELECT
-            id,
+            user_id AS id,
             provider,
             provider_id AS providerId,
             email,
@@ -18,10 +18,11 @@
         FROM users
         WHERE provider = #{provider}
           AND provider_id = #{providerId}
+          AND deleted_at IS NULL
     </select>
 
     <!-- 신규 사용자 insert -->
-    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="user_id">
         INSERT INTO users (
             provider,
             provider_id,
