@@ -13,5 +13,7 @@ public interface UserMapper {
             @Param("providerId") String providerId
     );
 
+    Optional<User> findById(@Param("userId") Long userId);
+
     void insert(User user);
 }
