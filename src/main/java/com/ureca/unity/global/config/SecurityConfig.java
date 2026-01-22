@@ -29,12 +29,10 @@ public class SecurityConfig {
                                 "/api/auth/login/**",
                                 "/api/auth/refresh",
                                 "/api/auth/me",
+                                "/api/auth/logout",
 
                                 "/counselings/*/stt"
                         ).permitAll()
-
-                        .requestMatchers("/api/auth/logout")
-                        .authenticated()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
