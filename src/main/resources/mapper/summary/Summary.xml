@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ureca.unity.domain.summary.mapper.SummaryMapper">
+
+    <insert id="insertSummary">
+        INSERT INTO summary (
+            stt_job_id,
+            counseling_id,
+            user_id,
+            title,
+            subject,
+            keywords,
+            points,
+            is_bookmarked,
+            created_at
+        ) VALUES (
+                     #{sttJobId},
+                     #{counselingId},
+                     #{userId},
+                     #{title},
+                     #{subject},
+                     CAST(#{keywords} AS JSON),
+                     CAST(#{points} AS JSON),
+                     false,
+                     NOW()
+                 )
+    </insert>
+
+</mapper>
