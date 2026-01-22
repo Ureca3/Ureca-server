@@ -1,4 +1,5 @@
 package com.ureca.unity.domain.summary.service;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ureca.unity.domain.gemini.dto.GeminiSummaryResponse;
 import com.ureca.unity.domain.gemini.service.GeminiSummaryService;
@@ -6,6 +7,9 @@ import com.ureca.unity.domain.summary.dto.response.SummaryResponse;
 import com.ureca.unity.domain.summary.mapper.SummaryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,18 +26,25 @@ public class SummaryService {
             String counselingText
     ) {
 
-        // 1️⃣ Gemini 요약 생성
         GeminiSummaryResponse geminiResult =
                 geminiSummaryService.summarize(counselingText);
 
-        try {
-            // 2️⃣ JSON 직렬화
-            String keywordsJson =
-                    objectMapper.writeValueAsString(geminiResult.getKeywords());
-            String pointsJson =
-                    objectMapper.writeValueAsString(geminiResult.getPoints());
+        List<String> keywords =
+                geminiResult.getKeywords() != null
+                        ? geminiResult.getKeywords()
+                        : Collections.emptyList();
 
-            // 3️⃣ DB 저장
+        List<String> points =
+                geminiResult.getPoints() != null
+                        ? geminiResult.getPoints()
+                        : Collections.emptyList();
+
+        try {
+            String keywordsJson =
+                    objectMapper.writeValueAsString(keywords);
+            String pointsJson =
+                    objectMapper.writeValueAsString(points);
+
             summaryMapper.insertSummary(
                     sttJobId,
                     counselingId,
@@ -48,12 +59,11 @@ public class SummaryService {
             throw new IllegalStateException("Summary 저장 실패", e);
         }
 
-        // 4️⃣ 응답 반환
         return new SummaryResponse(
                 geminiResult.getTitle(),
                 geminiResult.getSubject(),
-                geminiResult.getKeywords(),
-                geminiResult.getPoints()
+                keywords,
+                points
         );
     }
 }
