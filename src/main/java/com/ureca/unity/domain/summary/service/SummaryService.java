@@ -68,4 +68,20 @@ public class SummaryService {
                 points
         );
     }
+
+    @Transactional
+    public void toggleBookmark(Long summaryId) {
+
+        Boolean isBookmarked =
+                summaryMapper.findBookmarkStatus(summaryId);
+
+        if (isBookmarked == null) {
+            throw new IllegalArgumentException("Summary not found");
+        }
+
+        summaryMapper.updateBookmark(
+                summaryId,
+                !isBookmarked
+        );
+    }
 }

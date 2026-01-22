@@ -29,4 +29,16 @@
                  )
     </insert>
 
+    <select id="findBookmarkStatus" resultType="boolean">
+        SELECT is_bookmarked
+        FROM summary
+        WHERE summary_id = #{summaryId}
+    </select>
+
+    <update id="updateBookmark">
+        UPDATE summary
+        SET is_bookmarked = #{isBookmarked}
+        WHERE summary_id = #{summaryId}
+    </update>
+
 </mapper>

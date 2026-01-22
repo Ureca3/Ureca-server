@@ -15,4 +15,11 @@ public interface SummaryMapper {
             @Param("keywords") String keywordsJson,
             @Param("points") String pointsJson
     );
+
+    Boolean findBookmarkStatus(@Param("summaryId")Long summaryId);
+
+    void updateBookmark(
+            @Param("summaryId") Long summaryId,
+            @Param("bookmarkId") boolean isBookmarked
+    );
 }
