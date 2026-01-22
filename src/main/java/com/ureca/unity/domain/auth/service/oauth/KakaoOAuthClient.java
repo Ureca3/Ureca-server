@@ -101,7 +101,11 @@ public class KakaoOAuthClient implements OAuthClient {
         String nickname = null;
 
         if (kakaoAccount != null) {
-            email = (String) kakaoAccount.get("email");
+
+            Boolean hasEmail = (Boolean) kakaoAccount.get("has_email");
+            if (Boolean.TRUE.equals(hasEmail)) {
+                email = (String) kakaoAccount.get("email");
+            }
 
             Map<String, Object> profile =
                     (Map<String, Object>) kakaoAccount.get("profile");
@@ -110,10 +114,13 @@ public class KakaoOAuthClient implements OAuthClient {
             }
         }
 
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Kakao email consent required");
+        }
+
         if (nickname == null || nickname.isBlank()) {
             nickname = "kakao_user";
         }
-
         return OAuthUserInfo.builder()
                 .provider("kakao")
                 .providerId(body.get("id").toString())
