@@ -36,3 +36,15 @@ springdoc:
     path: /swagger-ui.html
   api-docs:
     path: /v3/api-docs
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+cors:
+  allowed-origins: http://localhost:3000
+
+cookie:
+  secure: false
+>>>>>>> 3304ba3 (chore: remove secrets and use env variables)
+=======
+>>>>>>> 3b73ff5 (URECA-48: remove secrets and use env variables)
