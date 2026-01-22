@@ -16,4 +16,7 @@ public interface UserMapper {
     Optional<User> findById(@Param("userId") Long userId);
 
     void insert(User user);
+
+    // 탈퇴 처리 (deleted_at 찍기)
+    int softDeleteById(@Param("userId") Long userId);
 }

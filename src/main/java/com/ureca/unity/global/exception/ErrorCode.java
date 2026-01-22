@@ -14,7 +14,8 @@ public enum ErrorCode {
 
     INVALID_OAUTH_PROVIDER(HttpStatus.BAD_REQUEST,"지원하지 않는 OAuth 제공자입니다."),
 
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.");
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
+    USER_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "이미 탈퇴한 사용자입니다.");
 
     private final HttpStatus status;
     private final String message;
