@@ -6,7 +6,7 @@ public class CookieUtils {
 
     private CookieUtils() {}
     public static final String REFRESH_TOKEN = "refreshToken";
-    private static final String PATH = "/api/auth";
+    private static final String PATH = "/";
 
     public static Cookie createRefreshTokenCookie(
             String token,
