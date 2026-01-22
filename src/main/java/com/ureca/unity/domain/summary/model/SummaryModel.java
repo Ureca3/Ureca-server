@@ -8,7 +8,7 @@ import java.util.List;
 @Getter
 public class SummaryModel {
     private Long summaryId;
-    private Long sttJodId;
+    private Long sttJobId;
     private Long counselingId;
     private Long userId;
 
