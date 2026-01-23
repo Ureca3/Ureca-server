@@ -44,8 +44,11 @@ out/
 
 # GCP
 gcp/*.json
+!**/src/main/resources/gcp/unity-stt.json
+src/main/resources/gcp/
 
 # Spring secrets
 application-local.yml
 application-prod.yml
+
 
