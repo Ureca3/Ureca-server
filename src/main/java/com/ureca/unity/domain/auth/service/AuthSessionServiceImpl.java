@@ -74,10 +74,9 @@ public class AuthSessionServiceImpl implements AuthSessionService {
         for (Cookie cookie : cookies) {
             if (CookieUtils.REFRESH_TOKEN.equals(cookie.getName())) {
                 String value = cookie.getValue();
-                if (value == null || value.isBlank()) {
-                    throw new CustomException(ErrorCode.REFRESH_TOKEN_MISSING);
+                if (value != null && !value.isBlank()) {
+                    return value;
                 }
-                return value;
             }
         }
         throw new CustomException(ErrorCode.REFRESH_TOKEN_MISSING);
