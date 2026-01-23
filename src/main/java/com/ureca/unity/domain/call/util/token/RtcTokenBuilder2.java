@@ -1,4 +1,4 @@
-package com.ureca.unity.domain.call.util;
+package com.ureca.unity.domain.call.util.token;
 
 public class RtcTokenBuilder2 {
     public enum Role {

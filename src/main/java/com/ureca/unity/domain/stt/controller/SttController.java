@@ -12,13 +12,10 @@ public class SttController {
 
     private final SttService sttService;
 
-    @PostMapping("/{counselingId}/stt")
-    public SttJob start(@PathVariable Long counselingId) {
-        return sttService.startStt(counselingId);
-    }
-
     @GetMapping("/{counselingId}/stt")
     public SttJob get(@PathVariable Long counselingId) {
         return sttService.getStt(counselingId);
     }
+
+
 }

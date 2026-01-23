@@ -1,4 +1,4 @@
-package com.ureca.unity.domain.call.util;
+package com.ureca.unity.domain.call.util.token;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
