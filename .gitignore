@@ -47,6 +47,8 @@ src/main/resources/gcp/
 # GCP
 gcp/*.json
 src/main/resources/gcp/*.json
+!**/src/main/resources/gcp/unity-stt.json
+src/main/resources/gcp/
 
 # Spring secrets
 application-local.yml
