@@ -38,11 +38,11 @@ public class Converter {
             return target;
 
         } catch (Exception e) {
-            log.error("변환 실패: {}", e.getMessage());
-            if (target != null && target.exists()) {
-                target.delete();
+            log.error("변환 실패: {}", m3u8Url, e);
+            if (target != null && target.exists() && !target.delete()) {
+                log.warn("임시 파일 삭제 실패: {}", target.getAbsolutePath());
             }
-            return null;
+            throw new IllegalStateException("m3u8 -> wav 변환 실패", e);
         }
     }
 }
