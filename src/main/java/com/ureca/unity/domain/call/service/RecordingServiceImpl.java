@@ -161,8 +161,7 @@ public class RecordingServiceImpl implements RecordingService {
                         sttService.startStt(wavFile);
                     }
                 } catch (Exception e) {
-                    log.error("비동기 변환 작업 중 오류: {}", e.getMessage());
-
+                    log.error("비동기 변환 작업 중 오류: {}", e);
                 }
             });
 
