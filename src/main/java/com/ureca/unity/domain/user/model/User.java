@@ -2,6 +2,8 @@ package com.ureca.unity.domain.user.model;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,4 +19,6 @@ public class User {
     private String name;
 
     private String role;          // ROLE_USER
+
+    private LocalDateTime deletedAt;
 }

@@ -56,4 +56,28 @@
           AND deleted_at IS NULL
     </update>
 
+    <select id="findAnyByProviderAndProviderId"
+            resultType="com.ureca.unity.domain.user.model.User">
+        SELECT
+            user_id AS id,
+            provider,
+            provider_id AS providerId,
+            email,
+            name,
+            role,
+            deleted_at AS deletedAt
+        FROM users
+        WHERE provider = #{provider}
+          AND provider_id = #{providerId}
+    </select>
+
+    <update id="restoreById">
+        UPDATE users
+        SET
+            deleted_at = NULL,
+            email = #{email},
+            name = #{name}
+        WHERE user_id = #{userId}
+    </update>
+
 </mapper>
