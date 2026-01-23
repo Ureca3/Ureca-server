@@ -62,7 +62,7 @@ public class SummaryService {
             );
 
         } catch (Exception e) {
-            summaryMapper.updateStatus(summaryId, "fail");
+            summaryMapper.updateStatus(summaryId, "FAIL");
             throw new IllegalStateException("요약 생성 실패", e);
         }
     }

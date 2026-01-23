@@ -16,7 +16,7 @@
         ) VALUES (
                      #{counselingResultId},
                      #{userId},
-                     'loading',
+                     'LOADING',
                      false,
                      NOW()
                  )
@@ -39,7 +39,7 @@
             subject = #{subject},
             keywords = CAST(#{keywords} AS JSON),
             points  = CAST(#{points} AS JSON),
-            status  = 'success'
+            status  = 'SUCCESS'
         WHERE summary_id = #{summaryId}
     </update>
 

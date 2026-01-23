@@ -5,9 +5,9 @@ import com.google.api.gax.longrunning.OperationFuture;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.speech.v1.*;
 import com.google.protobuf.ByteString;
-import com.ureca.unity.domain.gemini.service.GeminiSummaryService;
 import com.ureca.unity.domain.stt.mapper.CounselingResultMapper;
 import com.ureca.unity.domain.stt.model.CounselingResult;
+import com.ureca.unity.domain.summary.service.SummaryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class SttServiceImpl implements SttService {
 
     private final CounselingResultMapper sttMapper;
-    private final GeminiSummaryService geminiSummaryService;
+    private final SummaryService summaryService;
 
     @Value("${google.cloud.credentials.location}")
     private String keyPath;
@@ -104,10 +104,10 @@ public class SttServiceImpl implements SttService {
             job.setTexts("Error: " + e.getMessage());
         } finally {
             // 모든 작업이 끝난 후 파일 삭제
-            if (file.exists()) {
-                boolean isDeleted = file.delete();
-                log.info("임시 파일 삭제 여부: {}", isDeleted);
-            }
+//            if (file.exists()) {
+//                boolean isDeleted = file.delete();
+//                log.info("임시 파일 삭제 여부: {}", isDeleted);
+//            }
         }
 
         // 6. DB 업데이트 및 후속 작업
@@ -115,7 +115,7 @@ public class SttServiceImpl implements SttService {
 
         // 성공 시에만 요약 서비스 호출
         if ("SUCCESS".equals(job.getStatus())) {
-            geminiSummaryService.summarize(job.getTexts());
+            summaryService.createSummary(job.getCounselingResultId(),job.getUserId(),job.getTexts());
         }
 
         return job;
