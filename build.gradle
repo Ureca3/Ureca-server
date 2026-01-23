@@ -45,10 +45,7 @@ dependencies {
 
     implementation 'ws.schild:jave-all-deps:3.3.1'
     implementation 'commons-codec:commons-codec:1.15'  // Base64 클래스 포함
-    implementation 'software.amazon.awssdk:s3:2.20.0'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
-    implementation 'ws.schild:jave-all-deps:3.3.1'
 }
 
 tasks.named('test') {
