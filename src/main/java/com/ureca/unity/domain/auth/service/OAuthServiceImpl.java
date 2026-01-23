@@ -43,8 +43,22 @@ public class OAuthServiceImpl implements OAuthService {
                 )
                 .map(existingUser -> createLoginResult(existingUser.getId(), false)
                 )
+                .orElseGet(() ->
+                        userMapper
+                                .findAnyByProviderAndProviderId(userInfo.getProvider(), userInfo.getProviderId())
+                                .map(anyUser -> {
+                                    // 4-1. 탈퇴 유저면 복구
+                                    if (anyUser.getDeletedAt() != null) {
+                                        userMapper.restoreById(
+                                                anyUser.getId(),
+                                                userInfo.getEmail(),
+                                                userInfo.getName()
+                                        );
+                                    }
+                                    return createLoginResult(anyUser.getId(), false);
+                                })
                 .orElseGet(() -> {
-                    // 4. 신규 사용자 생성
+                    // 4-2. 신규 사용자 생성
                     User newUser = User.builder()
                             .provider(userInfo.getProvider())
                             .providerId(userInfo.getProviderId())
@@ -53,9 +67,9 @@ public class OAuthServiceImpl implements OAuthService {
                             .role("ROLE_USER")
                             .build();
                     userMapper.insert(newUser);
-
                     return createLoginResult(newUser.getId(), true);
-                });
+                    })
+                );
     }
     private OAuthLoginResult createLoginResult(Long userId, boolean requiresOnboarding) {
         String refreshToken = jwtIssuer.issueRefreshToken(userId);

@@ -5,7 +5,6 @@
 
 <mapper namespace="com.ureca.unity.domain.user.mapper.UserMapper">
 
-    <!-- provider + providerId로 사용자 조회 -->
     <select id="findByProviderAndProviderId"
             resultType="com.ureca.unity.domain.user.model.User">
         SELECT
@@ -21,7 +20,6 @@
           AND deleted_at IS NULL
     </select>
 
-    <!-- 신규 사용자 insert -->
     <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="user_id">
         INSERT INTO users (
             provider,
@@ -37,5 +35,49 @@
                      #{role}
                  )
     </insert>
+
+    <select id="findById" resultType="com.ureca.unity.domain.user.model.User">
+        SELECT
+            user_id AS id,
+            provider,
+            provider_id AS providerId,
+            email,
+            name,
+            role
+        FROM users
+        WHERE user_id = #{userId}
+          AND deleted_at IS NULL
+    </select>
+
+    <update id="softDeleteById">
+        UPDATE users
+        SET deleted_at = NOW()
+        WHERE user_id = #{userId}
+          AND deleted_at IS NULL
+    </update>
+
+    <select id="findAnyByProviderAndProviderId"
+            resultType="com.ureca.unity.domain.user.model.User">
+        SELECT
+            user_id AS id,
+            provider,
+            provider_id AS providerId,
+            email,
+            name,
+            role,
+            deleted_at AS deletedAt
+        FROM users
+        WHERE provider = #{provider}
+          AND provider_id = #{providerId}
+    </select>
+
+    <update id="restoreById">
+        UPDATE users
+        SET
+            deleted_at = NULL,
+            email = #{email},
+            name = #{name}
+        WHERE user_id = #{userId}
+    </update>
 
 </mapper>
