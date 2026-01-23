@@ -1,4 +1,4 @@
-package com.ureca.unity.domain.call.util;
+package com.ureca.unity.domain.call.util.token;
 
 /**
  * Created by Li on 10/1/2016.
