@@ -15,17 +15,20 @@ public class SummaryController {
     private final SummaryService summaryService;
 
     @PostMapping
-    public SummaryResponse create(@Valid @RequestBody SummaryRequest request) {
+    public SummaryResponse create(
+            @Valid @RequestBody SummaryRequest request
+    ) {
         return summaryService.createSummary(
-                request.getSttJobId(),
-                request.getCounselingId(),
+                request.getCounselingResultId(),
                 request.getUserId(),
                 request.getCounselingText()
         );
     }
 
     @PatchMapping("/{summaryId}/bookmark")
-    public void toggleBookmark(@PathVariable Long summaryId) {
+    public void toggleBookmark(
+            @PathVariable Long summaryId
+    ) {
         summaryService.toggleBookmark(summaryId);
     }
 }

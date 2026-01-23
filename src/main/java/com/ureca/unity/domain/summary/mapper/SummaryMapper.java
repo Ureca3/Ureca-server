@@ -7,19 +7,32 @@ import org.apache.ibatis.annotations.Param;
 public interface SummaryMapper {
 
     void insertSummary(
-            @Param("sttJobId") Long sttJobId,
-            @Param("counselingId") Long counselingId,
+            @Param("counselingResultId") Long counselingResultId,
+            @Param("userId") Long userId
+    );
+
+    Long findLatestSummaryId(
             @Param("userId") Long userId,
+            @Param("counselingResultId") Long counselingResultId
+    );
+
+    void updateSummaryResult(
+            @Param("summaryId") Long summaryId,
             @Param("title") String title,
             @Param("subject") String subject,
-            @Param("keywords") String keywordsJson,
+            @Param("keywords") String keywordJson,
             @Param("points") String pointsJson
     );
 
-    Boolean findBookmarkStatus(@Param("summaryId")Long summaryId);
+    void updateStatus(
+            @Param("summaryId") Long summaryId,
+            @Param("status") String status
+    );
+
+    Boolean findBookmarkStatus(@Param("summaryId") Long summaryId);
 
     void updateBookmark(
             @Param("summaryId") Long summaryId,
-            @Param("bookmarkId") boolean isBookmarked
+            @Param("isBookmarked") boolean isBookmarked
     );
 }

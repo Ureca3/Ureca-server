@@ -5,30 +5,52 @@
 
 <mapper namespace="com.ureca.unity.domain.summary.mapper.SummaryMapper">
 
+    <!-- summary 생성 (loading) -->
     <insert id="insertSummary">
         INSERT INTO summary (
-            stt_job_id,
-            counseling_id,
+            counseling_result_id,
             user_id,
-            title,
-            subject,
-            keywords,
-            points,
+            status,
             is_bookmarked,
             created_at
         ) VALUES (
-                     #{sttJobId},
-                     #{counselingId},
+                     #{counselingResultId},
                      #{userId},
-                     #{title},
-                     #{subject},
-                     CAST(#{keywords} AS JSON),
-                     CAST(#{points} AS JSON),
+                     'loading',
                      false,
                      NOW()
                  )
     </insert>
 
+    <select id="findLatestSummaryId" resultType="long">
+        SELECT summary_id
+        FROM summary
+        WHERE user_id = #{userId}
+          AND counseling_result_id = #{counselingResultId}
+        ORDER BY summary_id DESC
+            LIMIT 1
+    </select>
+
+    <!-- 요약 결과 업데이트 -->
+    <update id="updateSummaryResult">
+        UPDATE summary
+        SET
+            title = #{title},
+            subject = #{subject},
+            keywords = CAST(#{keywords} AS JSON),
+            points  = CAST(#{points} AS JSON),
+            status  = 'success'
+        WHERE summary_id = #{summaryId}
+    </update>
+
+    <!-- 실패 처리 -->
+    <update id="updateStatus">
+        UPDATE summary
+        SET status = #{status}
+        WHERE summary_id = #{summaryId}
+    </update>
+
+    <!-- 북마크 -->
     <select id="findBookmarkStatus" resultType="boolean">
         SELECT is_bookmarked
         FROM summary

@@ -10,10 +10,7 @@ import lombok.NoArgsConstructor;
 public class SummaryRequest {
 
     @NotNull
-    private Long sttJobId;
-
-    @NotNull
-    private Long counselingId;
+    private Long counselingResultId;
 
     @NotNull
     private Long userId;

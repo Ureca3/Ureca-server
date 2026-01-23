@@ -22,56 +22,53 @@ public class SummaryService {
 
     @Transactional
     public SummaryResponse createSummary(
-            Long sttJobId,
-            Long counselingId,
+            Long counselingResultId,
             Long userId,
             String counselingText
     ) {
+        // 1. summary 먼저 생성 (loading)
+        summaryMapper.insertSummary(counselingResultId, userId);
 
-        GeminiSummaryResponse geminiResult =
-                geminiSummaryService.summarize(counselingText);
-
-        List<String> keywords =
-                geminiResult.getKeywords() != null
-                        ? geminiResult.getKeywords()
-                        : Collections.emptyList();
-
-        List<String> points =
-                geminiResult.getPoints() != null
-                        ? geminiResult.getPoints()
-                        : Collections.emptyList();
+        Long summaryId =
+                summaryMapper.findLatestSummaryId(userId, counselingResultId);
 
         try {
-            String keywordsJson =
-                    objectMapper.writeValueAsString(keywords);
-            String pointsJson =
-                    objectMapper.writeValueAsString(points);
+            GeminiSummaryResponse gemini =
+                    geminiSummaryService.summarize(counselingText);
 
-            summaryMapper.insertSummary(
-                    sttJobId,
-                    counselingId,
-                    userId,
-                    geminiResult.getTitle(),
-                    geminiResult.getSubject(),
-                    keywordsJson,
-                    pointsJson
+            List<String> keywords =
+                    gemini.getKeywords() != null
+                            ? gemini.getKeywords()
+                            : Collections.emptyList();
+
+            List<String> points =
+                    gemini.getPoints() != null
+                            ? gemini.getPoints()
+                            : Collections.emptyList();
+
+            summaryMapper.updateSummaryResult(
+                    summaryId,
+                    gemini.getTitle(),
+                    gemini.getSubject(),
+                    objectMapper.writeValueAsString(keywords),
+                    objectMapper.writeValueAsString(points)
+            );
+
+            return new SummaryResponse(
+                    gemini.getTitle(),
+                    gemini.getSubject(),
+                    keywords,
+                    points
             );
 
         } catch (Exception e) {
-            throw new IllegalStateException("Summary 저장 실패", e);
+            summaryMapper.updateStatus(summaryId, "fail");
+            throw new IllegalStateException("요약 생성 실패", e);
         }
-
-        return new SummaryResponse(
-                geminiResult.getTitle(),
-                geminiResult.getSubject(),
-                keywords,
-                points
-        );
     }
 
     @Transactional
     public void toggleBookmark(Long summaryId) {
-
         Boolean isBookmarked =
                 summaryMapper.findBookmarkStatus(summaryId);
 
@@ -79,9 +76,6 @@ public class SummaryService {
             throw new IllegalArgumentException("Summary not found");
         }
 
-        summaryMapper.updateBookmark(
-                summaryId,
-                !isBookmarked
-        );
+        summaryMapper.updateBookmark(summaryId, !isBookmarked);
     }
 }
