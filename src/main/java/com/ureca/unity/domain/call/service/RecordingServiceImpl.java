@@ -150,7 +150,7 @@ public class RecordingServiceImpl implements RecordingService {
             //s3의 파일->wav로 변경->stt
             CompletableFuture.runAsync(() -> {
                 try {
-                    Thread.sleep(10000); //차후 lambda로 호출되면 동작하도록 개선
+                    Thread.sleep(10000); //TODO:차후 lambda로 호출되면 동작하도록 개선
                     String m3u8Url = String.format("https://%s.s3.ap-northeast-2.amazonaws.com/recordings/%s/%s_%s.m3u8",
                             s3Bucket, channelName, sid, channelName);
                     log.info("변환 시작: {}", m3u8Url);
@@ -162,7 +162,7 @@ public class RecordingServiceImpl implements RecordingService {
                     }
                 } catch (Exception e) {
                     log.error("비동기 변환 작업 중 오류: {}", e.getMessage());
-                    throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+
                 }
             });
 

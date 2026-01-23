@@ -19,9 +19,8 @@ public class CallServiceImpl implements CallService{
         RtcTokenBuilder2 tokenBuilder = new RtcTokenBuilder2();
         RtcTokenBuilder2.Role role = RtcTokenBuilder2.Role.ROLE_PUBLISHER;
         int expirationTimeInSeconds = 3600;
-        int timestamp = (int) (System.currentTimeMillis() / 1000 + expirationTimeInSeconds);
 
-        String token = tokenBuilder.buildTokenWithUid(appId, appCert, channel, uid, role, timestamp,timestamp);
+        String token = tokenBuilder.buildTokenWithUid(appId, appCert, channel, uid, role, expirationTimeInSeconds,expirationTimeInSeconds);
         return new AgoraTokenResponse(appId,token);
     }
 }

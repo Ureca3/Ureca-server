@@ -63,7 +63,7 @@ public class AccessToken2 {
     public static final short SERVICE_TYPE_CHAT = 5;
     public static final short SERVICE_TYPE_APAAS = 7;
 
-    public String appCert = "";
+    private String appCert = "";
     public String appId = "";
     public int expire;
     public int issueTs;
@@ -86,7 +86,7 @@ public class AccessToken2 {
 
     public String build() throws Exception {
         if (!Utils.isUUID(this.appId) || !Utils.isUUID(this.appCert)) {
-            return "";
+            throw new IllegalArgumentException("Invalid appId or appCert format. Expected 32-character hex string.");
         }
 
         ByteBuf buf = new ByteBuf().put(this.appId).put(this.issueTs).put(this.expire).put(this.salt).put((short) this.services.size());
