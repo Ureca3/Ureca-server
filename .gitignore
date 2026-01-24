@@ -41,11 +41,13 @@ out/
 
 ### VS Code ###
 .vscode/
+!**/src/main/resources/gcp/unity-stt.json
+src/main/resources/gcp/
 
 # GCP
 gcp/*.json
+src/main/resources/gcp/*.json
 
 # Spring secrets
 application-local.yml
 application-prod.yml
-
