@@ -11,7 +11,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-@Component("google")
+@Component("googleUnlink")
 @RequiredArgsConstructor
 public class GoogleUnlinkClient implements SocialUnlinkClient {
 

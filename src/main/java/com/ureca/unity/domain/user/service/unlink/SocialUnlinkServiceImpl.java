@@ -17,7 +17,10 @@ public class SocialUnlinkServiceImpl implements SocialUnlinkService {
 
     @Override
     public void unlink(User user, OAuthToken token) {
-        SocialUnlinkClient client = unlinkClients.get(user.getProvider());
+        String provider = user.getProvider() == null ? "" : user.getProvider().toLowerCase();
+        String key = provider + "Unlink";
+
+        SocialUnlinkClient client = unlinkClients.get(key);
         if (client == null) throw new CustomException(ErrorCode.INVALID_OAUTH_PROVIDER);
 
         client.unlink(user, token);

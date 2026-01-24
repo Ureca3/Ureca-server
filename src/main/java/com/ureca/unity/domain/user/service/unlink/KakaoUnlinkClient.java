@@ -12,7 +12,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-@Component("kakao")
+@Component("kakaoUnlink")
 @RequiredArgsConstructor
 public class KakaoUnlinkClient implements SocialUnlinkClient {
 
