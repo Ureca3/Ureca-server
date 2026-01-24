@@ -27,18 +27,15 @@ public class OAuthServiceImpl implements OAuthService {
 
     @Override
     public OAuthLoginResult login(OAuthProvider provider, String authorizationCode) {
-        // 1. OAuthClient 선택
         OAuthClient oAuthClient = oauthClients.get(provider.value());
         if (oAuthClient == null) {
             throw new CustomException(ErrorCode.INVALID_OAUTH_PROVIDER);
         }
 
-        // 2. OAuth 사용자 정보 조회
         OAuthAuthResult auth = oAuthClient.authenticate(authorizationCode);
         OAuthUserInfo userInfo = auth.userInfo();
         OAuthTokenInfo tokenInfo = auth.tokenInfo();
 
-        // 3. 사용자 조회
         return userMapper
                 .findByProviderAndProviderId(userInfo.getProvider(), userInfo.getProviderId())
                 .map(u -> createLoginResult(u.getId(), false, provider.value(), tokenInfo))
@@ -48,7 +45,7 @@ public class OAuthServiceImpl implements OAuthService {
                                     if (anyUser.getDeletedAt() != null) {
                                         userMapper.restoreById(anyUser.getId(), userInfo.getEmail(), userInfo.getName());
                                     }
-                                    return createLoginResult(anyUser.getId(), false, provider.value(), tokenInfo);
+                                    return createLoginResult(anyUser.getId(), anyUser.getDeletedAt() != null, provider.value(), tokenInfo);
                                 })
                                 .orElseGet(() -> {
                                     User newUser = User.builder()
