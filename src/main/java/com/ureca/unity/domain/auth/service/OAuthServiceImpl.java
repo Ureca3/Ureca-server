@@ -1,10 +1,8 @@
 package com.ureca.unity.domain.auth.service;
 
 import com.ureca.unity.domain.auth.constant.OAuthProvider;
-import com.ureca.unity.domain.auth.dto.OAuthLoginResponse;
-import com.ureca.unity.domain.auth.dto.OAuthLoginResult;
-import com.ureca.unity.domain.auth.dto.OAuthUserInfo;
-import com.ureca.unity.domain.auth.dto.TokenResponse;
+import com.ureca.unity.domain.auth.dto.*;
+import com.ureca.unity.domain.auth.model.OAuthToken;
 import com.ureca.unity.domain.auth.service.oauth.OAuthClient;
 import com.ureca.unity.domain.user.mapper.UserMapper;
 import com.ureca.unity.domain.user.model.User;
@@ -13,6 +11,8 @@ import com.ureca.unity.global.exception.ErrorCode;
 import com.ureca.unity.global.security.JwtIssuer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 import java.util.Map;
 
 @Service
@@ -23,6 +23,7 @@ public class OAuthServiceImpl implements OAuthService {
     private final UserMapper userMapper;
     private final JwtIssuer jwtIssuer;
     private final RefreshTokenService refreshTokenService;
+    private final OAuthTokenService oAuthTokenService;
 
     @Override
     public OAuthLoginResult login(OAuthProvider provider, String authorizationCode) {
@@ -33,45 +34,56 @@ public class OAuthServiceImpl implements OAuthService {
         }
 
         // 2. OAuth 사용자 정보 조회
-        OAuthUserInfo userInfo = oAuthClient.getUserInfo(authorizationCode);
+        OAuthAuthResult auth = oAuthClient.authenticate(authorizationCode);
+        OAuthUserInfo userInfo = auth.userInfo();
+        OAuthTokenInfo tokenInfo = auth.tokenInfo();
 
         // 3. 사용자 조회
         return userMapper
-                .findByProviderAndProviderId(
-                        userInfo.getProvider(),
-                        userInfo.getProviderId()
-                )
-                .map(existingUser -> createLoginResult(existingUser.getId(), false)
-                )
+                .findByProviderAndProviderId(userInfo.getProvider(), userInfo.getProviderId())
+                .map(u -> createLoginResult(u.getId(), false, provider.value(), tokenInfo))
                 .orElseGet(() ->
-                        userMapper
-                                .findAnyByProviderAndProviderId(userInfo.getProvider(), userInfo.getProviderId())
+                        userMapper.findAnyByProviderAndProviderId(userInfo.getProvider(), userInfo.getProviderId())
                                 .map(anyUser -> {
-                                    // 4-1. 탈퇴 유저면 복구
                                     if (anyUser.getDeletedAt() != null) {
-                                        userMapper.restoreById(
-                                                anyUser.getId(),
-                                                userInfo.getEmail(),
-                                                userInfo.getName()
-                                        );
+                                        userMapper.restoreById(anyUser.getId(), userInfo.getEmail(), userInfo.getName());
                                     }
-                                    return createLoginResult(anyUser.getId(), false);
+                                    return createLoginResult(anyUser.getId(), false, provider.value(), tokenInfo);
                                 })
-                .orElseGet(() -> {
-                    // 4-2. 신규 사용자 생성
-                    User newUser = User.builder()
-                            .provider(userInfo.getProvider())
-                            .providerId(userInfo.getProviderId())
-                            .email(userInfo.getEmail())
-                            .name(userInfo.getName())
-                            .role("ROLE_USER")
-                            .build();
-                    userMapper.insert(newUser);
-                    return createLoginResult(newUser.getId(), true);
-                    })
+                                .orElseGet(() -> {
+                                    User newUser = User.builder()
+                                            .provider(userInfo.getProvider())
+                                            .providerId(userInfo.getProviderId())
+                                            .email(userInfo.getEmail())
+                                            .name(userInfo.getName())
+                                            .role("ROLE_USER")
+                                            .build();
+                                    userMapper.insert(newUser);
+                                    return createLoginResult(newUser.getId(), true, provider.value(), tokenInfo);
+                                })
                 );
     }
-    private OAuthLoginResult createLoginResult(Long userId, boolean requiresOnboarding) {
+
+    private OAuthLoginResult createLoginResult(
+            Long userId,
+            boolean requiresOnboarding,
+            String provider,
+            OAuthTokenInfo tokenInfo
+    ) {
+        oAuthTokenService.upsert(
+                OAuthToken.builder()
+                        .userId(userId)
+                        .provider(provider)
+                        .accessToken(tokenInfo.accessToken())
+                        .refreshToken(tokenInfo.refreshToken())
+                        .expiresAt(
+                                tokenInfo.expiresInSeconds() != null
+                                        ? Instant.now().plusSeconds(tokenInfo.expiresInSeconds())
+                                        : null
+                        )
+                        .build()
+        );
+
         String refreshToken = jwtIssuer.issueRefreshToken(userId);
         refreshTokenService.saveRefreshToken(userId, refreshToken);
 
