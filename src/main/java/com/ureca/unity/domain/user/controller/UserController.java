@@ -11,7 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(
-        name = "Auth",
+        name = "1. Auth",
         description = "회원가입 및 로그인 관련 API"
 )
 @RestController
