@@ -10,6 +10,7 @@ import com.ureca.unity.global.exception.CustomException;
 import com.ureca.unity.global.exception.ErrorCode;
 import com.ureca.unity.global.security.JwtIssuer;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -77,34 +78,38 @@ public class OAuthServiceImpl implements OAuthService {
             String provider,
             OAuthTokenInfo tokenInfo
     ) {
-        oAuthTokenService.upsert(
-                OAuthToken.builder()
-                        .userId(userId)
-                        .provider(provider)
-                        .accessToken(tokenInfo.accessToken())
-                        .refreshToken(tokenInfo.refreshToken())
-                        .expiresAt(
-                                tokenInfo.expiresInSeconds() != null
-                                        ? LocalDateTime.ofInstant(
-                                        Instant.now().plusSeconds(tokenInfo.expiresInSeconds()),
-                                        ZoneOffset.UTC
-                                )
-                                        : null
-                        )
-                        .build()
-        );
+        try {
+            oAuthTokenService.upsert(
+                    OAuthToken.builder()
+                            .userId(userId)
+                            .provider(provider)
+                            .accessToken(tokenInfo.accessToken())
+                            .refreshToken(tokenInfo.refreshToken())
+                            .expiresAt(
+                                    tokenInfo.expiresInSeconds() != null
+                                            ? LocalDateTime.ofInstant(
+                                            Instant.now().plusSeconds(tokenInfo.expiresInSeconds()),
+                                            ZoneOffset.UTC
+                                    )
+                                            : null
+                            )
+                            .build()
+            );
 
-        String refreshToken = jwtIssuer.issueRefreshToken(userId);
-        refreshTokenService.saveRefreshToken(userId, refreshToken);
+            String refreshToken = jwtIssuer.issueRefreshToken(userId);
+            refreshTokenService.saveRefreshToken(userId, refreshToken);
 
-        TokenResponse accessToken = jwtIssuer.issueAccessToken(userId);
+            TokenResponse accessToken = jwtIssuer.issueAccessToken(userId);
 
-        return new OAuthLoginResult(
-                OAuthLoginResponse.builder()
-                        .token(accessToken)
-                        .requiresOnboarding(requiresOnboarding)
-                        .build(),
-                refreshToken
-        );
+            return new OAuthLoginResult(
+                    OAuthLoginResponse.builder()
+                            .token(accessToken)
+                            .requiresOnboarding(requiresOnboarding)
+                            .build(),
+                    refreshToken
+            );
+        } catch (DataAccessException e) {
+            throw new CustomException(ErrorCode.AUTH_STORAGE_FAILED);
+        }
     }
 }
