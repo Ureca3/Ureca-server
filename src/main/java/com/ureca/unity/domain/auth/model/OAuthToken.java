@@ -1,7 +1,7 @@
 package com.ureca.unity.domain.auth.model;
 
 import lombok.*;
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Builder
@@ -13,5 +13,5 @@ public class OAuthToken {
     private String provider;      // google / naver / kakao
     private String accessToken;
     private String refreshToken;  // nullable
-    private Instant expiresAt;    // nullable
+    private LocalDateTime expiresAt;    // nullable
 }

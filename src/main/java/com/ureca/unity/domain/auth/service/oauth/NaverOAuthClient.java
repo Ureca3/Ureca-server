@@ -32,7 +32,7 @@ public class NaverOAuthClient implements OAuthClient {
     @Value("${oauth.naver.redirect-uri}")
     private String redirectUri;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Override
     public OAuthAuthResult authenticate(String authorizationCode) {

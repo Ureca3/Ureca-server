@@ -32,7 +32,7 @@ public class KakaoOAuthClient implements OAuthClient {
     @Value("${oauth.kakao.redirect-uri}")
     private String redirectUri;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Override
     public OAuthAuthResult authenticate(String authorizationCode) {

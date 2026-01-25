@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Map;
 
 @Service
@@ -83,7 +85,10 @@ public class OAuthServiceImpl implements OAuthService {
                         .refreshToken(tokenInfo.refreshToken())
                         .expiresAt(
                                 tokenInfo.expiresInSeconds() != null
-                                        ? Instant.now().plusSeconds(tokenInfo.expiresInSeconds())
+                                        ? LocalDateTime.ofInstant(
+                                        Instant.now().plusSeconds(tokenInfo.expiresInSeconds()),
+                                        ZoneOffset.UTC
+                                )
                                         : null
                         )
                         .build()

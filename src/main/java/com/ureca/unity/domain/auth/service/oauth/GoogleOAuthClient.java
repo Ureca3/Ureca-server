@@ -34,7 +34,7 @@ public class GoogleOAuthClient implements OAuthClient {
     @Value("${oauth.google.redirect-uri}")
     private String redirectUri;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Override
     public OAuthAuthResult authenticate(String authorizationCode) {
@@ -43,14 +43,14 @@ public class GoogleOAuthClient implements OAuthClient {
         String accessToken = token.get("access_token").toString();
         String refreshToken = token.get("refresh_token") != null ? String.valueOf(token.get("refresh_token")) : null;
         Long expiresIn = null;
-            if (token.get("expires_in") != null) {
-                try {
-                    expiresIn = Long.valueOf(String.valueOf(token.get("expires_in")));
-                } catch (NumberFormatException e) {
-                    log.warn("Google token response has non-numeric expires_in: {}", token.get("expires_in"));
-                    // expires_in 파싱 실패 시 null로 처리
-                }
+        if (token.get("expires_in") != null) {
+            try {
+                expiresIn = Long.valueOf(String.valueOf(token.get("expires_in")));
+            } catch (NumberFormatException e) {
+                log.warn("Google token response has non-numeric expires_in: {}", token.get("expires_in"));
+                // expires_in 파싱 실패 시 null로 처리
             }
+        }
 
         OAuthUserInfo userInfo = fetchUserInfo(accessToken);
 
