@@ -44,3 +44,7 @@ cors:
 
 cookie:
   secure: ${COOKIE_SECURE:true}
+
+security:
+  oauth-token:
+    secret: ${OAUTH_TOKEN_SECRET}
