@@ -20,7 +20,7 @@ public enum ErrorCode {
     OAUTH_TOKEN_NOT_FOUND(HttpStatus.BAD_REQUEST, "소셜 토큰이 없어 연결 해제를 진행할 수 없습니다. 다시 로그인 후 탈퇴해주세요."),
     SOCIAL_UNLINK_FAILED(HttpStatus.BAD_GATEWAY, "소셜 연결 해제에 실패했습니다. 잠시 후 다시 시도해주세요."),
 
-    AUTH_STORAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    AUTH_STORAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 로그인 정보 저장에 실패했습니다. 잠시 후 다시 시도해주세요.");
 
     private final HttpStatus status;
     private final String message;
