@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Map;
 
@@ -89,7 +90,7 @@ public class OAuthServiceImpl implements OAuthService {
                                     tokenInfo.expiresInSeconds() != null
                                             ? LocalDateTime.ofInstant(
                                             Instant.now().plusSeconds(tokenInfo.expiresInSeconds()),
-                                            ZoneOffset.UTC
+                                            ZoneId.of("Asia/Seoul")
                                     )
                                             : null
                             )
