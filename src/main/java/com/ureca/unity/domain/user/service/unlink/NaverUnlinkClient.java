@@ -22,7 +22,7 @@ public class NaverUnlinkClient implements SocialUnlinkClient {
     @Value("${oauth.naver.client-secret}")
     private String clientSecret;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Override
     public void unlink(User user, OAuthToken token) {

@@ -19,10 +19,14 @@ public class KakaoUnlinkClient implements SocialUnlinkClient {
     @Value("${oauth.kakao.admin-key}")
     private String adminKey;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Override
     public void unlink(User user, OAuthToken token) {
+        if (user.getProviderId() == null || user.getProviderId().isBlank()) {
+            throw new CustomException(ErrorCode.OAUTH_TOKEN_NOT_FOUND); // 또는 INVALID_OAUTH_PROVIDER_ID 같은 별도 코드
+        }
+
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

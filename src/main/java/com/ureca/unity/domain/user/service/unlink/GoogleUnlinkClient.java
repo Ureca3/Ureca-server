@@ -15,7 +15,7 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class GoogleUnlinkClient implements SocialUnlinkClient {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Override
     public void unlink(User user, OAuthToken token) {
