@@ -47,6 +47,9 @@ public class GoogleUnlinkClient implements SocialUnlinkClient {
                 throw new CustomException(ErrorCode.SOCIAL_UNLINK_FAILED);
             }
         } catch (Exception e) {
+            if (e instanceof CustomException) {
+                throw (CustomException) e;
+            }
             throw new CustomException(ErrorCode.SOCIAL_UNLINK_FAILED);
         }
     }
