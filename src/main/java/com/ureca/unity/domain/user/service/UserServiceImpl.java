@@ -25,19 +25,17 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // 1. provider token 조회
-        com.ureca.unity.domain.auth.model.OAuthToken token =
-                oAuthTokenService.find(userId, user.getProvider())
-                        .orElseThrow(() -> new CustomException(ErrorCode.OAUTH_TOKEN_NOT_FOUND));
+        String provider = user.getProvider();
+        if (provider != null && !provider.isBlank()) {
+            com.ureca.unity.domain.auth.model.OAuthToken token =
+                    oAuthTokenService.find(userId, provider)
+                            .orElseThrow(() -> new CustomException(ErrorCode.OAUTH_TOKEN_NOT_FOUND));
+            socialUnlinkService.unlink(user, token);
+        }
 
-        // 2. 소셜 unlink/revoke
-        socialUnlinkService.unlink(user, token);
-
-        // 3. 토큰 정리 (Unity 서비스 쪽)
         oAuthTokenService.deleteByUserId(userId);
         refreshTokenMapper.deleteByUserId(userId);
 
-        // 3. soft delete
         int updated = userMapper.softDeleteById(userId);
         if (updated == 0) {
             throw new CustomException(ErrorCode.USER_ALREADY_DELETED);
