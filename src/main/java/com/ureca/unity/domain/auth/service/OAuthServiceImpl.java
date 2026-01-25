@@ -42,10 +42,18 @@ public class OAuthServiceImpl implements OAuthService {
                 .orElseGet(() ->
                         userMapper.findAnyByProviderAndProviderId(userInfo.getProvider(), userInfo.getProviderId())
                                 .map(anyUser -> {
-                                    if (anyUser.getDeletedAt() != null) {
-                                        userMapper.restoreById(anyUser.getId(), userInfo.getEmail(), userInfo.getName());
+                                    boolean wasDeleted = anyUser.getDeletedAt() != null;
+
+                                    if (wasDeleted) {
+                                        userMapper.restoreById(
+                                                anyUser.getId(),
+                                                userInfo.getEmail(),
+                                                userInfo.getName()
+                                        );
                                     }
-                                    return createLoginResult(anyUser.getId(), anyUser.getDeletedAt() != null, provider.value(), tokenInfo);
+
+                                    // 재가입이면 true, 기존이면 false
+                                    return createLoginResult(anyUser.getId(), wasDeleted, provider.value(), tokenInfo);
                                 })
                                 .orElseGet(() -> {
                                     User newUser = User.builder()

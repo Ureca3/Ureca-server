@@ -4,6 +4,7 @@ import com.ureca.unity.domain.auth.dto.OAuthAuthResult;
 import com.ureca.unity.domain.auth.dto.OAuthTokenInfo;
 import com.ureca.unity.domain.auth.dto.OAuthUserInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
+@Slf4j
 @Component("google")
 @RequiredArgsConstructor
 public class GoogleOAuthClient implements OAuthClient {
@@ -40,7 +42,15 @@ public class GoogleOAuthClient implements OAuthClient {
 
         String accessToken = token.get("access_token").toString();
         String refreshToken = token.get("refresh_token") != null ? String.valueOf(token.get("refresh_token")) : null;
-        Long expiresIn = token.get("expires_in") != null ? Long.valueOf(String.valueOf(token.get("expires_in"))) : null;
+        Long expiresIn = null;
+            if (token.get("expires_in") != null) {
+                try {
+                    expiresIn = Long.valueOf(String.valueOf(token.get("expires_in")));
+                } catch (NumberFormatException e) {
+                    log.warn("Google token response has non-numeric expires_in: {}", token.get("expires_in"));
+                    // expires_in 파싱 실패 시 null로 처리
+                }
+            }
 
         OAuthUserInfo userInfo = fetchUserInfo(accessToken);
 
