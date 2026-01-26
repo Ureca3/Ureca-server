@@ -1,7 +1,10 @@
 package com.ureca.unity.domain.auth.service.oauth;
 
+import com.ureca.unity.domain.auth.dto.OAuthAuthResult;
+import com.ureca.unity.domain.auth.dto.OAuthTokenInfo;
 import com.ureca.unity.domain.auth.dto.OAuthUserInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -11,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
+@Slf4j
 @Component("google")
 @RequiredArgsConstructor
 public class GoogleOAuthClient implements OAuthClient {
@@ -30,15 +34,34 @@ public class GoogleOAuthClient implements OAuthClient {
     @Value("${oauth.google.redirect-uri}")
     private String redirectUri;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Override
-    public OAuthUserInfo getUserInfo(String authorizationCode) {
-        String accessToken = getAccessToken(authorizationCode);
-        return fetchUserInfo(accessToken);
+    public OAuthAuthResult authenticate(String authorizationCode) {
+        Map<String, Object> token = getTokenResponse(authorizationCode); // access/refresh/expires_in
+
+        String accessToken = token.get("access_token").toString();
+        String refreshToken = token.get("refresh_token") != null ? String.valueOf(token.get("refresh_token")) : null;
+        Long expiresIn = null;
+        if (token.get("expires_in") != null) {
+            try {
+                expiresIn = Long.valueOf(String.valueOf(token.get("expires_in")));
+            } catch (NumberFormatException e) {
+                log.warn("Google token response has non-numeric expires_in: {}", token.get("expires_in"));
+                // expires_in 파싱 실패 시 null로 처리
+            }
+        }
+
+        OAuthUserInfo userInfo = fetchUserInfo(accessToken);
+
+        return new OAuthAuthResult(
+                userInfo,
+                new OAuthTokenInfo(accessToken, refreshToken, expiresIn)
+        );
     }
 
-    private String getAccessToken(String code) {
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private Map<String, Object> getTokenResponse(String code) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -50,8 +73,7 @@ public class GoogleOAuthClient implements OAuthClient {
         body.add("redirect_uri", redirectUri);
         body.add("code", code);
 
-        HttpEntity<MultiValueMap<String, String>> request =
-                new HttpEntity<>(body, headers);
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
         ResponseEntity<Map> response = restTemplate.exchange(
                 tokenUri,
@@ -64,8 +86,9 @@ public class GoogleOAuthClient implements OAuthClient {
             throw new IllegalArgumentException("Failed to retrieve Google access token");
         }
 
-        return response.getBody().get("access_token").toString();
+        return (Map<String, Object>) response.getBody();
     }
+
 
     private OAuthUserInfo fetchUserInfo(String accessToken) {
 
