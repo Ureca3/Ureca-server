@@ -6,6 +6,7 @@ import com.ureca.unity.domain.auth.dto.OAuthLoginResponse;
 import com.ureca.unity.domain.auth.dto.OAuthLoginResult;
 import com.ureca.unity.domain.auth.service.OAuthService;
 import com.ureca.unity.global.util.CookieUtils;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotBlank;
@@ -14,6 +15,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(
+        name = "1. Auth",
+        description = "회원가입 및 로그인 관련 API"
+)
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor

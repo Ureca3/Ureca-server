@@ -3,9 +3,15 @@ package com.ureca.unity.domain.summary.controller;
 import com.ureca.unity.domain.summary.dto.request.SummaryRequest;
 import com.ureca.unity.domain.summary.dto.response.SummaryResponse;
 import com.ureca.unity.domain.summary.service.SummaryService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+@Tag(
+        name = "4. Summary",
+        description = "요약 관련 API"
+)
 
 @RestController
 @RequiredArgsConstructor
