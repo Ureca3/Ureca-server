@@ -1,5 +1,7 @@
 package com.ureca.unity.domain.auth.service.oauth;
 
+import com.ureca.unity.domain.auth.dto.OAuthAuthResult;
+import com.ureca.unity.domain.auth.dto.OAuthTokenInfo;
 import com.ureca.unity.domain.auth.dto.OAuthUserInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,16 +32,26 @@ public class NaverOAuthClient implements OAuthClient {
     @Value("${oauth.naver.redirect-uri}")
     private String redirectUri;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Override
-    public OAuthUserInfo getUserInfo(String authorizationCode) {
-        String accessToken = getAccessToken(authorizationCode);
-        return fetchUserInfo(accessToken);
+    public OAuthAuthResult authenticate(String authorizationCode) {
+        Map<String, Object> token = getTokenResponse(authorizationCode);
+
+        String accessToken = token.get("access_token").toString();
+        String refreshToken = token.get("refresh_token") != null ? String.valueOf(token.get("refresh_token")) : null;
+        Long expiresIn = token.get("expires_in") != null ? Long.valueOf(String.valueOf(token.get("expires_in"))) : null;
+
+        OAuthUserInfo userInfo = fetchUserInfo(accessToken);
+
+        return new OAuthAuthResult(
+                userInfo,
+                new OAuthTokenInfo(accessToken, refreshToken, expiresIn)
+        );
     }
 
-    /* 1. Authorization Code → Access Token */
-    private String getAccessToken(String code) {
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private Map<String, Object> getTokenResponse(String code) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -65,11 +77,10 @@ public class NaverOAuthClient implements OAuthClient {
             throw new IllegalArgumentException("Failed to retrieve Naver access token");
         }
 
-        return response.getBody().get("access_token").toString();
+        return (Map<String, Object>) response.getBody();
     }
 
-    /* 2. Access Token → Naver User Info */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private OAuthUserInfo fetchUserInfo(String accessToken) {
 
         HttpHeaders headers = new HttpHeaders();

@@ -1,7 +1,10 @@
 package com.ureca.unity.domain.summary.mapper;
 
+import com.ureca.unity.domain.summary.model.SummaryModel;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface SummaryMapper {
@@ -35,4 +38,10 @@ public interface SummaryMapper {
             @Param("summaryId") Long summaryId,
             @Param("isBookmarked") boolean isBookmarked
     );
+
+    // ✅ 목록 조회
+    List<SummaryModel> findByUserId(@Param("userId") Long userId);
+
+    // ✅ 상세 조회
+    SummaryModel findById(@Param("summaryId") Long summaryId);
 }

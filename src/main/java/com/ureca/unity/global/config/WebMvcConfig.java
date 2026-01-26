@@ -13,7 +13,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")        // 모든 엔드포인트
-                .allowedOrigins(allowedOrigins.split(","))
+                .allowedOrigins(allowedOrigins.split("\\s*,\\s*"))
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowCredentials(true);
     }

@@ -5,7 +5,7 @@
 
 <mapper namespace="com.ureca.unity.domain.summary.mapper.SummaryMapper">
 
-    <!-- summary 생성 (loading) -->
+    <!-- 요약 생성 -->
     <insert id="insertSummary">
         INSERT INTO summary (
             counseling_result_id,
@@ -31,7 +31,7 @@
             LIMIT 1
     </select>
 
-    <!-- 요약 결과 업데이트 -->
+    <!-- 요약 결과 업데이트 (성공) -->
     <update id="updateSummaryResult">
         UPDATE summary
         SET
@@ -43,7 +43,7 @@
         WHERE summary_id = #{summaryId}
     </update>
 
-    <!-- 실패 처리 -->
+    <!-- 상태 업데이트 (FAIL 등) -->
     <update id="updateStatus">
         UPDATE summary
         SET status = #{status}
@@ -62,5 +62,42 @@
         SET is_bookmarked = #{isBookmarked}
         WHERE summary_id = #{summaryId}
     </update>
+
+    <!-- 🔥 요약 리스트 조회 -->
+    <select id="findByUserId"
+            resultType="com.ureca.unity.domain.summary.model.SummaryModel">
+        SELECT
+            summary_id             AS summaryId,
+            counseling_result_id   AS counselingResultId,
+            user_id                AS userId,
+            title,
+            subject,
+            keywords,
+            points,
+            is_bookmarked          AS isBookmarked,
+            status,
+            created_at             AS createdAt
+        FROM summary
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 요약 상세 조회 -->
+    <select id="findById"
+            resultType="com.ureca.unity.domain.summary.model.SummaryModel">
+        SELECT
+            summary_id             AS summaryId,
+            counseling_result_id   AS counselingResultId,
+            user_id                AS userId,
+            title,
+            subject,
+            keywords,
+            points,
+            is_bookmarked          AS isBookmarked,
+            status,
+            created_at             AS createdAt
+        FROM summary
+        WHERE summary_id = #{summaryId}
+    </select>
 
 </mapper>
