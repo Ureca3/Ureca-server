@@ -9,11 +9,12 @@ import com.ureca.unity.domain.summary.dto.response.SummaryListResponse;
 import com.ureca.unity.domain.summary.dto.response.SummaryResponse;
 import com.ureca.unity.domain.summary.mapper.SummaryMapper;
 import com.ureca.unity.domain.summary.model.SummaryModel;
+import com.ureca.unity.global.exception.CustomException;
+import com.ureca.unity.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -24,12 +25,12 @@ public class SummaryService {
     private final SummaryMapper summaryMapper;
     private final ObjectMapper objectMapper;
 
-    @Transactional
-    public SummaryResponse createSummary(
+    public void createSummary(
             Long counselingResultId,
             Long userId,
             String counselingText
     ) {
+        if(userId==null) throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         summaryMapper.insertSummary(counselingResultId, userId);
 
         Long summaryId =
@@ -39,15 +40,14 @@ public class SummaryService {
             GeminiSummaryResponse gemini =
                     geminiSummaryService.summarize(counselingText);
 
-            List<String> keywords =
-                    gemini.getKeywords() != null
-                            ? gemini.getKeywords()
-                            : Collections.emptyList();
+            if (gemini.getKeywords() == null || gemini.getKeywords().isEmpty()
+                    || gemini.getPoints() == null || gemini.getPoints().isEmpty()){
+                summaryMapper.updateStatus(summaryId, "FAIL");
+                throw new RuntimeException("Gemini 결과 누락");
+            }
 
-            List<String> points =
-                    gemini.getPoints() != null
-                            ? gemini.getPoints()
-                            : Collections.emptyList();
+            List<String> keywords = gemini.getKeywords();
+            List<String> points = gemini.getPoints();
 
             summaryMapper.updateSummaryResult(
                     summaryId,
@@ -59,7 +59,7 @@ public class SummaryService {
 
             summaryMapper.updateStatus(summaryId, "SUCCESS");
 
-            return new SummaryResponse(
+            new SummaryResponse(
                     gemini.getTitle(),
                     gemini.getSubject(),
                     keywords,

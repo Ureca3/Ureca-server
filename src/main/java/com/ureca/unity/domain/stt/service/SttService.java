@@ -1,10 +1,12 @@
 package com.ureca.unity.domain.stt.service;
 
-import com.ureca.unity.domain.stt.model.SttJob;
+import com.ureca.unity.domain.stt.model.CounselingResult;
+
+import java.io.File;
 
 public interface SttService {
 
-    SttJob startStt(Long counselingId);
+    CounselingResult startStt(File filePath, long userId);
 
-    SttJob getStt(Long counselingId);
+    CounselingResult getStt(Long counselingId);
 }
