@@ -80,6 +80,11 @@ public class OAuthServiceImpl implements OAuthService {
             OAuthTokenInfo tokenInfo
     ) {
         try {
+            User user = userMapper.findById(userId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+            boolean termsAgreed = user.getTermsAgreedAt() != null;
+
             oAuthTokenService.upsert(
                     OAuthToken.builder()
                             .userId(userId)
@@ -106,6 +111,7 @@ public class OAuthServiceImpl implements OAuthService {
                     OAuthLoginResponse.builder()
                             .token(accessToken)
                             .requiresOnboarding(requiresOnboarding)
+                            .termsAgreed(termsAgreed)
                             .build(),
                     refreshToken
             );
