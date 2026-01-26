@@ -8,7 +8,7 @@
     <resultMap id="CounselingResultMap" type="com.ureca.unity.domain.stt.model.CounselingResult">
         <id property="counselingResultId" column="counseling_result_id"/>
         <result property="userId" column="user_id"/>
-        <result property="counserlorId" column="counselor_id"/>
+        <result property="counselorId" column="counselor_id"/>
         <result property="counselingType" column="counseling_type"/>
         <result property="texts" column="texts"/>
         <result property="status" column="status"/>

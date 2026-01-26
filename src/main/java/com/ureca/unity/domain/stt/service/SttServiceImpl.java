@@ -32,10 +32,10 @@ public class SttServiceImpl implements SttService {
     private String keyPath;
 
     @Override
-    public CounselingResult startStt(File file) {
+    public CounselingResult startStt(File file, long userId) {
         // 초기 작업 저장
         CounselingResult job = CounselingResult.builder()
-                .userId(1L)
+                .userId(userId)
                 .counselorId(1L)
                 .counselingType("CALL")
                 .status("LOADING")
@@ -104,10 +104,10 @@ public class SttServiceImpl implements SttService {
             job.setTexts("Error: " + e.getMessage());
         } finally {
             // 모든 작업이 끝난 후 파일 삭제
-//            if (file.exists()) {
-//                boolean isDeleted = file.delete();
-//                log.info("임시 파일 삭제 여부: {}", isDeleted);
-//            }
+            if (file.exists()) {
+                boolean isDeleted = file.delete();
+                log.info("임시 파일 삭제 여부: {}", isDeleted);
+            }
         }
 
         // 6. DB 업데이트 및 후속 작업

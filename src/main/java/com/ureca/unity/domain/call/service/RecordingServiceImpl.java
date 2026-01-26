@@ -158,7 +158,7 @@ public class RecordingServiceImpl implements RecordingService {
 
                     if (wavFile != null && wavFile.exists()) {
                         log.info("최종 WAV 생성 성공: {}", wavFile.getAbsolutePath());
-                        sttService.startStt(wavFile);
+                        sttService.startStt(wavFile, Long.parseLong(uid));
                     }
                 } catch (Exception e) {
                     log.error("비동기 변환 작업 중 오류: {}", e);

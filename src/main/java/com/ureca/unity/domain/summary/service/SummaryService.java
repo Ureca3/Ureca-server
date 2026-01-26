@@ -20,7 +20,6 @@ public class SummaryService {
     private final SummaryMapper summaryMapper;
     private final ObjectMapper objectMapper;
 
-    @Transactional
     public SummaryResponse createSummary(
             Long counselingResultId,
             Long userId,
@@ -36,15 +35,13 @@ public class SummaryService {
             GeminiSummaryResponse gemini =
                     geminiSummaryService.summarize(counselingText);
 
-            List<String> keywords =
-                    gemini.getKeywords() != null
-                            ? gemini.getKeywords()
-                            : Collections.emptyList();
+            if (gemini.getKeywords() == null || gemini.getPoints() == null) {
+                summaryMapper.updateStatus(summaryId,"FAIL");
+                throw new IllegalArgumentException("Gemini로부터 유효한 결과를 받지 못했습니다.");
+            }
 
-            List<String> points =
-                    gemini.getPoints() != null
-                            ? gemini.getPoints()
-                            : Collections.emptyList();
+            List<String> keywords =gemini.getKeywords();
+            List<String> points = gemini.getPoints();
 
             summaryMapper.updateSummaryResult(
                     summaryId,
@@ -62,7 +59,6 @@ public class SummaryService {
             );
 
         } catch (Exception e) {
-            summaryMapper.updateStatus(summaryId, "FAIL");
             throw new IllegalStateException("요약 생성 실패", e);
         }
     }
