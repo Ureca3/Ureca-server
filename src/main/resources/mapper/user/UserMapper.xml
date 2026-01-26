@@ -88,6 +88,7 @@
         UPDATE users
         SET terms_agreed_at = #{termsAgreedAt}
         WHERE user_id = #{userId}
+          AND deleted_at IS NULL
     </update>
 
 

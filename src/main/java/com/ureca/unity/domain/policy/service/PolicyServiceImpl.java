@@ -6,6 +6,7 @@ import com.ureca.unity.global.exception.CustomException;
 import com.ureca.unity.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
@@ -16,6 +17,7 @@ public class PolicyServiceImpl implements PolicyService {
     private final UserMapper userMapper;
 
     @Override
+    @Transactional
     public void agree(Long userId) {
         User user = userMapper.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
