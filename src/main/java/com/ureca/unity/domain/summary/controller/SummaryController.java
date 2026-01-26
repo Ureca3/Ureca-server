@@ -1,40 +1,31 @@
 package com.ureca.unity.domain.summary.controller;
 
-import com.ureca.unity.domain.summary.dto.request.SummaryRequest;
-import com.ureca.unity.domain.summary.dto.response.SummaryResponse;
+import com.ureca.unity.domain.summary.dto.response.SummaryDetailResponse;
+import com.ureca.unity.domain.summary.dto.response.SummaryListResponse;
 import com.ureca.unity.domain.summary.service.SummaryService;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(
-        name = "4. Summary",
-        description = "요약 관련 API"
-)
+import java.util.List;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/summaries")
+@RequiredArgsConstructor
 public class SummaryController {
 
     private final SummaryService summaryService;
 
-    @PostMapping
-    public SummaryResponse create(
-            @Valid @RequestBody SummaryRequest request
+    @GetMapping
+    public List<SummaryListResponse> getMySummaries(
+            @RequestParam Long userId
     ) {
-        return summaryService.createSummary(
-                request.getCounselingResultId(),
-                request.getUserId(),
-                request.getCounselingText()
-        );
+        return summaryService.getMySummaries(userId);
     }
 
-    @PatchMapping("/{summaryId}/bookmark")
-    public void toggleBookmark(
+    @GetMapping("/{summaryId}")
+    public SummaryDetailResponse getSummaryDetail(
             @PathVariable Long summaryId
     ) {
-        summaryService.toggleBookmark(summaryId);
+        return summaryService.getSummaryDetail(summaryId);
     }
 }
