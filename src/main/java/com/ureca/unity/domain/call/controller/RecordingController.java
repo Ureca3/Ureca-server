@@ -31,7 +31,8 @@ public class RecordingController {
                 request.resourceId(),
                 request.sid(),
                 request.channelName(),
-                request.uid()
+                request.uid(),
+                request.userId()
         );
         return ResponseEntity.ok("Recording stopped successfully");
     }
