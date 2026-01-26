@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -24,8 +23,7 @@ public class SummaryService {
     private final SummaryMapper summaryMapper;
     private final ObjectMapper objectMapper;
 
-    @Transactional
-    public SummaryResponse createSummary(
+    public void createSummary(
             Long counselingResultId,
             Long userId,
             String counselingText
@@ -39,15 +37,13 @@ public class SummaryService {
             GeminiSummaryResponse gemini =
                     geminiSummaryService.summarize(counselingText);
 
-            List<String> keywords =
-                    gemini.getKeywords() != null
-                            ? gemini.getKeywords()
-                            : Collections.emptyList();
+            if (gemini.getKeywords() == null || gemini.getPoints() == null) {
+                summaryMapper.updateStatus(summaryId, "FAIL");
+                throw new RuntimeException("Gemini 결과 누락");
+            }
 
-            List<String> points =
-                    gemini.getPoints() != null
-                            ? gemini.getPoints()
-                            : Collections.emptyList();
+            List<String> keywords = gemini.getKeywords();
+            List<String> points = gemini.getPoints();
 
             summaryMapper.updateSummaryResult(
                     summaryId,
@@ -59,7 +55,7 @@ public class SummaryService {
 
             summaryMapper.updateStatus(summaryId, "SUCCESS");
 
-            return new SummaryResponse(
+            new SummaryResponse(
                     gemini.getTitle(),
                     gemini.getSubject(),
                     keywords,

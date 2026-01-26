@@ -2,7 +2,6 @@ package com.ureca.unity.domain.call.service;
 
 import com.ureca.unity.domain.call.util.Converter;
 import com.ureca.unity.domain.stt.service.SttService;
-import com.ureca.unity.domain.stt.service.SttServiceImpl;
 import com.ureca.unity.global.exception.CustomException;
 import com.ureca.unity.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -13,13 +12,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import ws.schild.jave.Encoder;
-import ws.schild.jave.MultimediaObject;
-import ws.schild.jave.encode.AudioAttributes;
-import ws.schild.jave.encode.EncodingAttributes;
 
 import java.io.File;
-import java.net.URL;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
