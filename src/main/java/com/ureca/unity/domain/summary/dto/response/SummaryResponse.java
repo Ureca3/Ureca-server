@@ -14,4 +14,3 @@ public class SummaryResponse {
     private List<String> keywords;
     private List<String> points;
 }
-//수정 완
