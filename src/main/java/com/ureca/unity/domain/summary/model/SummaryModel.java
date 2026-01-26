@@ -14,10 +14,10 @@ public class SummaryModel {
     private String title;
     private String subject;
 
-    private String keywords;   // JSON
-    private String points;    // JSON
+    private String keywords;
+    private String points;
 
-    private boolean isBookmarked;
+    private Boolean isBookmarked;
     private String status;
     private LocalDateTime createdAt;
 }
