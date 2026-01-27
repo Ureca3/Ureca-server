@@ -25,23 +25,25 @@ public class SummaryService {
     private final SummaryMapper summaryMapper;
     private final ObjectMapper objectMapper;
 
+    @Transactional
     public void createSummary(
             Long counselingResultId,
             Long userId,
             String counselingText
     ) {
-        if(userId==null) throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        if (userId == null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
         summaryMapper.insertSummary(counselingResultId, userId);
 
-        Long summaryId =
-                summaryMapper.findLatestSummaryId(userId, counselingResultId);
+        Long summaryId = summaryMapper.findLatestSummaryId(userId, counselingResultId);
 
         try {
-            GeminiSummaryResponse gemini =
-                    geminiSummaryService.summarize(counselingText);
+            GeminiSummaryResponse gemini = geminiSummaryService.summarize(counselingText);
 
             if (gemini.getKeywords() == null || gemini.getKeywords().isEmpty()
-                    || gemini.getPoints() == null || gemini.getPoints().isEmpty()){
+                    || gemini.getPoints() == null || gemini.getPoints().isEmpty()) {
                 summaryMapper.updateStatus(summaryId, "FAIL");
                 throw new RuntimeException("Gemini 결과 누락");
             }
@@ -59,6 +61,7 @@ public class SummaryService {
 
             summaryMapper.updateStatus(summaryId, "SUCCESS");
 
+            // 필요하면 반환형으로 바꾸거나, 로그용으로 사용
             new SummaryResponse(
                     gemini.getTitle(),
                     gemini.getSubject(),
@@ -79,8 +82,32 @@ public class SummaryService {
                     try {
                         List<String> keywords =
                                 summary.getKeywords() != null
-                                        ? objectMapper.readValue(
-                                        summary.getKeywords(),
+                                        ? objectMapper.readValue(summary.getKeywords(),
+                                        new TypeReference<List<String>>() {})
+                                        : List.of();
+
+                        return new SummaryListResponse(
+                                summary.getSummaryId(),
+                                summary.getTitle(),
+                                summary.getStatus(),
+                                keywords,
+                                summary.getCreatedAt()
+                        );
+                    } catch (Exception e) {
+                        throw new IllegalStateException(e);
+                    }
+                })
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SummaryListResponse> getBookmarkedSummaries(Long userId) {
+        return summaryMapper.findBookmarkedByUserId(userId).stream()
+                .map(summary -> {
+                    try {
+                        List<String> keywords =
+                                summary.getKeywords() != null
+                                        ? objectMapper.readValue(summary.getKeywords(),
                                         new TypeReference<List<String>>() {})
                                         : List.of();
 
@@ -109,15 +136,13 @@ public class SummaryService {
         try {
             List<String> keywords =
                     summary.getKeywords() != null
-                            ? objectMapper.readValue(
-                            summary.getKeywords(),
+                            ? objectMapper.readValue(summary.getKeywords(),
                             new TypeReference<List<String>>() {})
                             : List.of();
 
             List<String> points =
                     summary.getPoints() != null
-                            ? objectMapper.readValue(
-                            summary.getPoints(),
+                            ? objectMapper.readValue(summary.getPoints(),
                             new TypeReference<List<String>>() {})
                             : List.of();
 
@@ -139,11 +164,10 @@ public class SummaryService {
 
     @Transactional
     public void toggleBookmark(Long summaryId) {
-        Boolean isBookmarked =
-                summaryMapper.findBookmarkStatus(summaryId);
+        Boolean isBookmarked = summaryMapper.findBookmarkStatus(summaryId);
 
         if (isBookmarked == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("summary not found");
         }
 
         summaryMapper.updateBookmark(summaryId, !isBookmarked);
