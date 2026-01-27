@@ -5,7 +5,7 @@
 
 <mapper namespace="com.ureca.unity.domain.summary.mapper.SummaryMapper">
 
- 
+    <!-- 요약 생성 -->
     <insert id="insertSummary">
         INSERT INTO summary (
             counseling_result_id,
@@ -31,26 +31,14 @@
             LIMIT 1
     </select>
 
-
+    <!-- 요약 결과 업데이트 -->
     <update id="updateSummaryResult">
         UPDATE summary
         SET
             title = #{title},
             subject = #{subject},
-            keywords = CASE
-                           WHEN #{keywords} IS NULL THEN NULL
-                           ELSE CAST(#{keywords} AS JSON)
-                END,
-            points = CASE
-                         WHEN #{points} IS NULL THEN NULL
-                         ELSE CAST(#{points} AS JSON)
-                END
-        WHERE summary_id = #{summaryId}
-    </update>
-
-
-            points  = CAST(#{points} AS JSON),
-            status  = 'SUCCESS'
+            keywords = CAST(#{keywords} AS JSON),
+            points  = CAST(#{points} AS JSON)
         WHERE summary_id = #{summaryId}
     </update>
 
@@ -59,7 +47,6 @@
         SET status = #{status}
         WHERE summary_id = #{summaryId}
     </update>
-
 
     <select id="findBookmarkStatus" resultType="boolean">
         SELECT is_bookmarked
@@ -73,20 +60,13 @@
         WHERE summary_id = #{summaryId}
     </update>
 
+    <!-- 전체 리스트 조회 -->
     <select id="findByUserId"
             resultType="com.ureca.unity.domain.summary.model.SummaryModel">
         SELECT
             summary_id           AS summaryId,
             counseling_result_id AS counselingResultId,
             user_id              AS userId,
-
-    <select id="findByUserId"
-            resultType="com.ureca.unity.domain.summary.model.SummaryModel">
-        SELECT
-            summary_id             AS summaryId,
-            counseling_result_id   AS counselingResultId,
-            user_id                AS userId,
-
             title,
             subject,
             keywords,
@@ -94,14 +74,12 @@
             is_bookmarked        AS isBookmarked,
             status,
             created_at           AS createdAt
-            is_bookmarked          AS isBookmarked,
-            status,
-            created_at             AS createdAt
         FROM summary
         WHERE user_id = #{userId}
         ORDER BY created_at DESC
     </select>
 
+    <!-- 북마크 리스트 조회 -->
     <select id="findBookmarkedByUserId"
             resultType="com.ureca.unity.domain.summary.model.SummaryModel">
         SELECT
@@ -121,19 +99,13 @@
         ORDER BY created_at DESC
     </select>
 
+    <!-- 요약 상세 조회 -->
     <select id="findById"
             resultType="com.ureca.unity.domain.summary.model.SummaryModel">
         SELECT
             summary_id           AS summaryId,
             counseling_result_id AS counselingResultId,
             user_id              AS userId,
-    <!-- 요약 상세 조회 -->
-    <select id="findById"
-            resultType="com.ureca.unity.domain.summary.model.SummaryModel">
-        SELECT
-            summary_id             AS summaryId,
-            counseling_result_id   AS counselingResultId,
-            user_id                AS userId,
             title,
             subject,
             keywords,
@@ -141,9 +113,6 @@
             is_bookmarked        AS isBookmarked,
             status,
             created_at           AS createdAt
-            is_bookmarked          AS isBookmarked,
-            status,
-            created_at             AS createdAt
         FROM summary
         WHERE summary_id = #{summaryId}
     </select>
