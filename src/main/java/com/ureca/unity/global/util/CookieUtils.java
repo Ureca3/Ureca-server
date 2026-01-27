@@ -21,7 +21,7 @@ public class CookieUtils {
         cookie.setSecure(secure);
         cookie.setPath(PATH);
         cookie.setMaxAge((int) maxAgeSeconds);
-        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", "Lax");
         return cookie;
     }
 
@@ -31,7 +31,7 @@ public class CookieUtils {
         cookie.setSecure(secure);
         cookie.setPath(PATH);
         cookie.setMaxAge(0);
-        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", "Lax");
         return cookie;
     }
 }
