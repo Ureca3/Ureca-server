@@ -1,8 +1,10 @@
 package com.ureca.unity.domain.call.service;
 
 import com.ureca.unity.domain.call.util.Converter;
-import com.ureca.unity.domain.call.util.GcsUploader;
+import com.ureca.unity.domain.stt.mapper.CounselingResultMapper;
+import com.ureca.unity.domain.stt.model.CounselingResult;
 import com.ureca.unity.domain.stt.service.SttService;
+import com.ureca.unity.domain.summary.mapper.SummaryMapper;
 import com.ureca.unity.global.exception.CustomException;
 import com.ureca.unity.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,8 @@ public class RecordingServiceImpl implements RecordingService {
 
     private final WebClient.Builder webClientBuilder;
     private final SttService sttService;
+    private final CounselingResultMapper sttMapper;
+    private final SummaryMapper summaryMapper;
 
     //@Value 주입이 완료된 후, 호출 시점에 WebClient 빌드
     private WebClient getWebClient() {
@@ -127,6 +131,16 @@ public class RecordingServiceImpl implements RecordingService {
     public void stop(String resourceId, String sid, String channelName, String uid, String userId) {
         log.info("[Agora] Stop 요청 - sid: {}", sid);
 
+        Long longUserId=Long.parseLong(userId);
+        CounselingResult job = CounselingResult.builder()
+                .userId(longUserId)
+                .counselorId(1L)
+                .counselingType("CALL")
+                .status("LOADING")
+                .build();
+        sttMapper.insert(job);
+        summaryMapper.insertSummary(job.getCounselingResultId(), longUserId);
+
         Map<String, Object> body = Map.of(
                 "cname", channelName,
                 "uid", uid,
@@ -153,7 +167,7 @@ public class RecordingServiceImpl implements RecordingService {
 
                     if (wavFile != null && wavFile.exists()) {
                         log.info("최종 WAV 생성 성공: {}", wavFile.getAbsolutePath());
-                        sttService.startStt(wavFile, Long.parseLong(userId));
+                        sttService.startStt(wavFile, longUserId, job);
                     }
                 } catch (Exception e) {
                     log.error("비동기 변환 작업 중 오류: {}", e);

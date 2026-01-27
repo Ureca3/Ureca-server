@@ -4,11 +4,10 @@ import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.longrunning.OperationFuture;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.speech.v1.*;
-import com.google.protobuf.ByteString;
-import com.ureca.unity.domain.call.util.GcsUploader;
 import com.ureca.unity.domain.stt.mapper.CounselingResultMapper;
 import com.ureca.unity.domain.stt.model.CounselingResult;
 import com.ureca.unity.domain.summary.service.SummaryService;
+import com.ureca.unity.domain.call.util.GcsUploader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -35,16 +33,7 @@ public class SttServiceImpl implements SttService {
     private String keyPath;
 
     @Override
-    public CounselingResult startStt(File file, long userId) {
-
-        CounselingResult job = CounselingResult.builder()
-                .userId(userId)
-                .counselorId(1L)
-                .counselingType("CALL")
-                .status("LOADING")
-                .build();
-        sttMapper.insert(job);
-
+    public CounselingResult startStt(File file, long userId, CounselingResult job) {
         String gcsUri = null;
 
         try {

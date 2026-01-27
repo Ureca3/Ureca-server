@@ -4,6 +4,7 @@ import com.ureca.unity.domain.summary.dto.response.SummaryDetailResponse;
 import com.ureca.unity.domain.summary.dto.response.SummaryListResponse;
 import com.ureca.unity.domain.summary.service.SummaryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,5 +32,13 @@ public class SummaryController {
     @GetMapping("/{summaryId}")
     public SummaryDetailResponse getSummaryDetail(@PathVariable Long summaryId) {
         return summaryService.getSummaryDetail(summaryId);
+    }
+
+    @GetMapping("/{summaryId}/bookmark")
+    public ResponseEntity<Boolean> toggleBookmark(
+            @PathVariable Long summaryId
+    ){
+        boolean done=summaryService.toggleBookmark(summaryId);
+        return ResponseEntity.ok(done);
     }
 }

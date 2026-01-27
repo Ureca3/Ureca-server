@@ -34,7 +34,7 @@ public interface SummaryMapper {
 
     Boolean findBookmarkStatus(@Param("summaryId") Long summaryId);
 
-    void updateBookmark(
+    int updateBookmark(
             @Param("summaryId") Long summaryId,
             @Param("isBookmarked") boolean isBookmarked
     );

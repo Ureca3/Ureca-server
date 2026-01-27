@@ -35,8 +35,6 @@ public class SummaryService {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        summaryMapper.insertSummary(counselingResultId, userId);
-
         Long summaryId = summaryMapper.findLatestSummaryId(userId, counselingResultId);
 
         try {
@@ -163,13 +161,14 @@ public class SummaryService {
     }
 
     @Transactional
-    public void toggleBookmark(Long summaryId) {
+    public boolean toggleBookmark(Long summaryId) {
         Boolean isBookmarked = summaryMapper.findBookmarkStatus(summaryId);
 
         if (isBookmarked == null) {
             throw new IllegalArgumentException("summary not found");
         }
 
-        summaryMapper.updateBookmark(summaryId, !isBookmarked);
+        int done=summaryMapper.updateBookmark(summaryId, !isBookmarked);
+        return done>0;
     }
 }

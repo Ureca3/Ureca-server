@@ -6,7 +6,7 @@ import java.io.File;
 
 public interface SttService {
 
-    CounselingResult startStt(File filePath, long userId);
+    CounselingResult startStt(File filePath, long userId, CounselingResult job);
 
     CounselingResult getStt(Long counselingId);
 }
