@@ -5,7 +5,6 @@
 
 <mapper namespace="com.ureca.unity.domain.summary.mapper.SummaryMapper">
 
-    <!-- 요약 생성 -->
     <insert id="insertSummary">
         INSERT INTO summary (
             counseling_result_id,
@@ -31,26 +30,22 @@
             LIMIT 1
     </select>
 
-    <!-- 요약 결과 업데이트 (성공) -->
     <update id="updateSummaryResult">
         UPDATE summary
         SET
             title = #{title},
             subject = #{subject},
             keywords = CAST(#{keywords} AS JSON),
-            points  = CAST(#{points} AS JSON),
-            status  = 'SUCCESS'
+            points  = CAST(#{points} AS JSON)
         WHERE summary_id = #{summaryId}
     </update>
 
-    <!-- 상태 업데이트 (FAIL 등) -->
     <update id="updateStatus">
         UPDATE summary
         SET status = #{status}
         WHERE summary_id = #{summaryId}
     </update>
 
-    <!-- 북마크 -->
     <select id="findBookmarkStatus" resultType="boolean">
         SELECT is_bookmarked
         FROM summary
@@ -63,39 +58,56 @@
         WHERE summary_id = #{summaryId}
     </update>
 
-    <!-- 🔥 요약 리스트 조회 -->
     <select id="findByUserId"
             resultType="com.ureca.unity.domain.summary.model.SummaryModel">
         SELECT
-            summary_id             AS summaryId,
-            counseling_result_id   AS counselingResultId,
-            user_id                AS userId,
+            summary_id           AS summaryId,
+            counseling_result_id AS counselingResultId,
+            user_id              AS userId,
             title,
             subject,
             keywords,
             points,
-            is_bookmarked          AS isBookmarked,
+            is_bookmarked        AS isBookmarked,
             status,
-            created_at             AS createdAt
+            created_at           AS createdAt
         FROM summary
         WHERE user_id = #{userId}
         ORDER BY created_at DESC
     </select>
 
-    <!-- 요약 상세 조회 -->
-    <select id="findById"
+    <select id="findBookmarkedByUserId"
             resultType="com.ureca.unity.domain.summary.model.SummaryModel">
         SELECT
-            summary_id             AS summaryId,
-            counseling_result_id   AS counselingResultId,
-            user_id                AS userId,
+            summary_id           AS summaryId,
+            counseling_result_id AS counselingResultId,
+            user_id              AS userId,
             title,
             subject,
             keywords,
             points,
-            is_bookmarked          AS isBookmarked,
+            is_bookmarked        AS isBookmarked,
             status,
-            created_at             AS createdAt
+            created_at           AS createdAt
+        FROM summary
+        WHERE user_id = #{userId}
+          AND is_bookmarked = true
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="findById"
+            resultType="com.ureca.unity.domain.summary.model.SummaryModel">
+        SELECT
+            summary_id           AS summaryId,
+            counseling_result_id AS counselingResultId,
+            user_id              AS userId,
+            title,
+            subject,
+            keywords,
+            points,
+            is_bookmarked        AS isBookmarked,
+            status,
+            created_at           AS createdAt
         FROM summary
         WHERE summary_id = #{summaryId}
     </select>

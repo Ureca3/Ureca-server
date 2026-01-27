@@ -22,10 +22,24 @@ public class SummaryController {
         return summaryService.getMySummaries(userId);
     }
 
+    @GetMapping("/bookmarks")
+    public List<SummaryListResponse> getBookmarkedSummaries(
+            @RequestParam Long userId
+    ) {
+        return summaryService.getBookmarkedSummaries(userId);
+    }
+
     @GetMapping("/{summaryId}")
     public SummaryDetailResponse getSummaryDetail(
             @PathVariable Long summaryId
     ) {
         return summaryService.getSummaryDetail(summaryId);
+    }
+
+    @PatchMapping("/{summaryId}/bookmark")
+    public void toggleBookmark(
+            @PathVariable Long summaryId
+    ) {
+        summaryService.toggleBookmark(summaryId);
     }
 }

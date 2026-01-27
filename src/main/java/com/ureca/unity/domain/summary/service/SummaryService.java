@@ -9,11 +9,12 @@ import com.ureca.unity.domain.summary.dto.response.SummaryListResponse;
 import com.ureca.unity.domain.summary.dto.response.SummaryResponse;
 import com.ureca.unity.domain.summary.mapper.SummaryMapper;
 import com.ureca.unity.domain.summary.model.SummaryModel;
+import com.ureca.unity.global.exception.CustomException;
+import com.ureca.unity.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -25,11 +26,16 @@ public class SummaryService {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public SummaryResponse createSummary(
+    public void createSummary(
             Long counselingResultId,
             Long userId,
             String counselingText
     ) {
+        if (userId == null) {
+            throw new CustomException(ErrorCode.INVALID_OAUTH_PROVIDER);
+
+        }
+
         summaryMapper.insertSummary(counselingResultId, userId);
 
         Long summaryId =
@@ -39,31 +45,27 @@ public class SummaryService {
             GeminiSummaryResponse gemini =
                     geminiSummaryService.summarize(counselingText);
 
-            List<String> keywords =
-                    gemini.getKeywords() != null
-                            ? gemini.getKeywords()
-                            : Collections.emptyList();
-
-            List<String> points =
-                    gemini.getPoints() != null
-                            ? gemini.getPoints()
-                            : Collections.emptyList();
+            if (gemini.getKeywords() == null || gemini.getKeywords().isEmpty()
+                    || gemini.getPoints() == null || gemini.getPoints().isEmpty()) {
+                summaryMapper.updateStatus(summaryId, "FAIL");
+                throw new RuntimeException("Gemini 결과 누락");
+            }
 
             summaryMapper.updateSummaryResult(
                     summaryId,
                     gemini.getTitle(),
                     gemini.getSubject(),
-                    objectMapper.writeValueAsString(keywords),
-                    objectMapper.writeValueAsString(points)
+                    objectMapper.writeValueAsString(gemini.getKeywords()),
+                    objectMapper.writeValueAsString(gemini.getPoints())
             );
 
             summaryMapper.updateStatus(summaryId, "SUCCESS");
 
-            return new SummaryResponse(
+            new SummaryResponse(
                     gemini.getTitle(),
                     gemini.getSubject(),
-                    keywords,
-                    points
+                    gemini.getKeywords(),
+                    gemini.getPoints()
             );
 
         } catch (Exception e) {
@@ -75,6 +77,32 @@ public class SummaryService {
     @Transactional(readOnly = true)
     public List<SummaryListResponse> getMySummaries(Long userId) {
         return summaryMapper.findByUserId(userId).stream()
+                .map(summary -> {
+                    try {
+                        List<String> keywords =
+                                summary.getKeywords() != null
+                                        ? objectMapper.readValue(
+                                        summary.getKeywords(),
+                                        new TypeReference<List<String>>() {})
+                                        : List.of();
+
+                        return new SummaryListResponse(
+                                summary.getSummaryId(),
+                                summary.getTitle(),
+                                summary.getStatus(),
+                                keywords,
+                                summary.getCreatedAt()
+                        );
+                    } catch (Exception e) {
+                        throw new IllegalStateException(e);
+                    }
+                })
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SummaryListResponse> getBookmarkedSummaries(Long userId) {
+        return summaryMapper.findBookmarkedByUserId(userId).stream()
                 .map(summary -> {
                     try {
                         List<String> keywords =
@@ -139,11 +167,10 @@ public class SummaryService {
 
     @Transactional
     public void toggleBookmark(Long summaryId) {
-        Boolean isBookmarked =
-                summaryMapper.findBookmarkStatus(summaryId);
+        Boolean isBookmarked = summaryMapper.findBookmarkStatus(summaryId);
 
         if (isBookmarked == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("summary not found");
         }
 
         summaryMapper.updateBookmark(summaryId, !isBookmarked);
