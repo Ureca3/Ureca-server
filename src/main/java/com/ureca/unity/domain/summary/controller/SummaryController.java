@@ -22,6 +22,24 @@ public class SummaryController {
         return summaryService.getMySummaries(userId);
     }
 
+    @GetMapping("/bookmarks")
+    public List<SummaryListResponse> getBookmarkedSummaries(
+            @RequestParam Long userId
+    ) {
+        return summaryService.getBookmarkedSummaries(userId);
+    }
+
+    @GetMapping("/{summaryId}")
+    public SummaryDetailResponse getSummaryDetail(
+            @PathVariable Long summaryId
+    ) {
+        return summaryService.getSummaryDetail(summaryId);
+
+    ) {
+        return summaryService.getMySummaries(userId);
+
+    }
+
     @GetMapping("/{summaryId}")
     public SummaryDetailResponse getSummaryDetail(
             @PathVariable Long summaryId

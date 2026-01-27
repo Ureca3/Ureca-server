@@ -39,9 +39,11 @@ public interface SummaryMapper {
             @Param("isBookmarked") boolean isBookmarked
     );
 
-    // ✅ 목록 조회
+
     List<SummaryModel> findByUserId(@Param("userId") Long userId);
 
-    // ✅ 상세 조회
+    List<SummaryModel> findBookmarkedByUserId(@Param("userId") Long userId);
+    List<SummaryModel> findByUserId(@Param("userId") Long userId);
+
     SummaryModel findById(@Param("summaryId") Long summaryId);
 }
