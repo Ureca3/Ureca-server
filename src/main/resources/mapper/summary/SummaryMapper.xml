@@ -37,8 +37,14 @@
         SET
             title = #{title},
             subject = #{subject},
-            keywords = CAST(#{keywords} AS JSON),
-            points  = CAST(#{points} AS JSON)
+            keywords = CASE
+                           WHEN #{keywords} IS NULL THEN NULL
+                           ELSE CAST(#{keywords} AS JSON)
+                END,
+            points = CASE
+                         WHEN #{points} IS NULL THEN NULL
+                         ELSE CAST(#{points} AS JSON)
+                END
         WHERE summary_id = #{summaryId}
     </update>
 
