@@ -61,7 +61,9 @@ public class AuthSessionServiceImpl implements AuthSessionService {
                 user.getEmail(),
                 user.getName(),
                 user.getRole(),
-                user.getProvider()
+                user.getProvider(),
+                user.getTermsAgreedAt() != null,
+                user.getTermsAgreedAt()
         );
     }
 

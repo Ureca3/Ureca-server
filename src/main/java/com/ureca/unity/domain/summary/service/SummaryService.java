@@ -26,6 +26,7 @@ public class SummaryService {
     private final ObjectMapper objectMapper;
 
     @Transactional
+
     public void createSummary(
             Long counselingResultId,
             Long userId,
@@ -36,6 +37,7 @@ public class SummaryService {
 
         }
 
+        if(userId==null) throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         summaryMapper.insertSummary(counselingResultId, userId);
 
         Long summaryId =
@@ -50,6 +52,13 @@ public class SummaryService {
                 summaryMapper.updateStatus(summaryId, "FAIL");
                 throw new RuntimeException("Gemini 결과 누락");
             }
+                    || gemini.getPoints() == null || gemini.getPoints().isEmpty()){
+                summaryMapper.updateStatus(summaryId, "FAIL");
+                throw new RuntimeException("Gemini 결과 누락");
+            }
+
+            List<String> keywords = gemini.getKeywords();
+            List<String> points = gemini.getPoints();
 
             summaryMapper.updateSummaryResult(
                     summaryId,
@@ -161,6 +170,75 @@ public class SummaryService {
             );
 
         } catch (Exception e) {
+
+
+            summaryMapper.updateStatus(summaryId, "FAIL");
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<SummaryListResponse> getMySummaries(Long userId) {
+        return summaryMapper.findByUserId(userId).stream()
+                .map(summary -> {
+                    try {
+                        List<String> keywords =
+                                summary.getKeywords() != null
+                                        ? objectMapper.readValue(
+                                        summary.getKeywords(),
+                                        new TypeReference<List<String>>() {})
+                                        : List.of();
+
+                        return new SummaryListResponse(
+                                summary.getSummaryId(),
+                                summary.getTitle(),
+                                summary.getStatus(),
+                                keywords,
+                                summary.getCreatedAt()
+                        );
+                    } catch (Exception e) {
+                        throw new IllegalStateException(e);
+                    }
+                })
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public SummaryDetailResponse getSummaryDetail(Long summaryId) {
+        SummaryModel summary = summaryMapper.findById(summaryId);
+
+        if (summary == null) {
+            return null;
+        }
+
+        try {
+            List<String> keywords =
+                    summary.getKeywords() != null
+                            ? objectMapper.readValue(
+                            summary.getKeywords(),
+                            new TypeReference<List<String>>() {})
+                            : List.of();
+
+            List<String> points =
+                    summary.getPoints() != null
+                            ? objectMapper.readValue(
+                            summary.getPoints(),
+                            new TypeReference<List<String>>() {})
+                            : List.of();
+
+            return new SummaryDetailResponse(
+                    summary.getSummaryId(),
+                    summary.getTitle(),
+                    summary.getSubject(),
+                    keywords,
+                    points,
+                    summary.getStatus(),
+                    summary.getIsBookmarked(),
+                    summary.getCreatedAt()
+            );
+
+        } catch (Exception e) {
+
             throw new IllegalStateException(e);
         }
     }
@@ -170,7 +248,10 @@ public class SummaryService {
         Boolean isBookmarked = summaryMapper.findBookmarkStatus(summaryId);
 
         if (isBookmarked == null) {
+
             throw new IllegalArgumentException("summary not found");
+
+            throw new IllegalArgumentException();
         }
 
         summaryMapper.updateBookmark(summaryId, !isBookmarked);

@@ -2,6 +2,7 @@ package com.ureca.unity.domain.user.model;
 
 import lombok.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Getter
@@ -20,5 +21,6 @@ public class User {
 
     private String role;          // ROLE_USER
 
+    private Instant termsAgreedAt;
     private LocalDateTime deletedAt;
 }

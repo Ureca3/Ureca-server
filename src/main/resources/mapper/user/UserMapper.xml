@@ -13,7 +13,8 @@
             provider_id AS providerId,
             email,
             name,
-            role
+            role,
+            terms_agreed_at AS termsAgreedAt
         FROM users
         WHERE provider = #{provider}
           AND provider_id = #{providerId}
@@ -43,7 +44,8 @@
             provider_id AS providerId,
             email,
             name,
-            role
+            role,
+            terms_agreed_at AS termsAgreedAt
         FROM users
         WHERE user_id = #{userId}
           AND deleted_at IS NULL
@@ -65,6 +67,7 @@
             email,
             name,
             role,
+            terms_agreed_at AS termsAgreedAt,
             deleted_at AS deletedAt
         FROM users
         WHERE provider = #{provider}
@@ -76,8 +79,17 @@
         SET
             deleted_at = NULL,
             email = #{email},
-            name = #{name}
+            name = #{name},
+            terms_agreed_at = NULL
         WHERE user_id = #{userId}
     </update>
+
+    <update id="updateTermsAgreedAt">
+        UPDATE users
+        SET terms_agreed_at = #{termsAgreedAt}
+        WHERE user_id = #{userId}
+          AND deleted_at IS NULL
+    </update>
+
 
 </mapper>

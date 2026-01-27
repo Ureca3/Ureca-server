@@ -34,12 +34,16 @@ public class SummaryController {
             @PathVariable Long summaryId
     ) {
         return summaryService.getSummaryDetail(summaryId);
+
+    ) {
+        return summaryService.getMySummaries(userId);
+
     }
 
-    @PatchMapping("/{summaryId}/bookmark")
-    public void toggleBookmark(
+    @GetMapping("/{summaryId}")
+    public SummaryDetailResponse getSummaryDetail(
             @PathVariable Long summaryId
     ) {
-        summaryService.toggleBookmark(summaryId);
+        return summaryService.getSummaryDetail(summaryId);
     }
 }

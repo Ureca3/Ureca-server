@@ -36,6 +36,7 @@ public class JwtIssuer {
 
         return TokenResponse.builder()
                 .accessToken(accessToken)
+                .userId(userId)
                 .accessTokenExpiresIn(accessExp)
                 .build();
     }

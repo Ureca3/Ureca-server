@@ -5,6 +5,7 @@
 
 <mapper namespace="com.ureca.unity.domain.summary.mapper.SummaryMapper">
 
+ 
     <insert id="insertSummary">
         INSERT INTO summary (
             counseling_result_id,
@@ -30,6 +31,7 @@
             LIMIT 1
     </select>
 
+
     <update id="updateSummaryResult">
         UPDATE summary
         SET
@@ -40,11 +42,18 @@
         WHERE summary_id = #{summaryId}
     </update>
 
+
+            points  = CAST(#{points} AS JSON),
+            status  = 'SUCCESS'
+        WHERE summary_id = #{summaryId}
+    </update>
+
     <update id="updateStatus">
         UPDATE summary
         SET status = #{status}
         WHERE summary_id = #{summaryId}
     </update>
+
 
     <select id="findBookmarkStatus" resultType="boolean">
         SELECT is_bookmarked
@@ -64,6 +73,14 @@
             summary_id           AS summaryId,
             counseling_result_id AS counselingResultId,
             user_id              AS userId,
+
+    <select id="findByUserId"
+            resultType="com.ureca.unity.domain.summary.model.SummaryModel">
+        SELECT
+            summary_id             AS summaryId,
+            counseling_result_id   AS counselingResultId,
+            user_id                AS userId,
+
             title,
             subject,
             keywords,
@@ -71,6 +88,9 @@
             is_bookmarked        AS isBookmarked,
             status,
             created_at           AS createdAt
+            is_bookmarked          AS isBookmarked,
+            status,
+            created_at             AS createdAt
         FROM summary
         WHERE user_id = #{userId}
         ORDER BY created_at DESC
@@ -101,6 +121,13 @@
             summary_id           AS summaryId,
             counseling_result_id AS counselingResultId,
             user_id              AS userId,
+    <!-- 요약 상세 조회 -->
+    <select id="findById"
+            resultType="com.ureca.unity.domain.summary.model.SummaryModel">
+        SELECT
+            summary_id             AS summaryId,
+            counseling_result_id   AS counselingResultId,
+            user_id                AS userId,
             title,
             subject,
             keywords,
@@ -108,6 +135,9 @@
             is_bookmarked        AS isBookmarked,
             status,
             created_at           AS createdAt
+            is_bookmarked          AS isBookmarked,
+            status,
+            created_at             AS createdAt
         FROM summary
         WHERE summary_id = #{summaryId}
     </select>
