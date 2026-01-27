@@ -5,6 +5,7 @@ import com.google.api.gax.longrunning.OperationFuture;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.speech.v1.*;
 import com.google.protobuf.ByteString;
+import com.ureca.unity.domain.call.util.GcsUploader;
 import com.ureca.unity.domain.stt.mapper.CounselingResultMapper;
 import com.ureca.unity.domain.stt.model.CounselingResult;
 import com.ureca.unity.domain.summary.service.SummaryService;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,13 +29,14 @@ public class SttServiceImpl implements SttService {
 
     private final CounselingResultMapper sttMapper;
     private final SummaryService summaryService;
+    private final GcsUploader gcpUploader;
 
     @Value("${google.cloud.credentials.location}")
     private String keyPath;
 
     @Override
     public CounselingResult startStt(File file, long userId) {
-        // 초기 작업 저장
+
         CounselingResult job = CounselingResult.builder()
                 .userId(userId)
                 .counselorId(1L)
@@ -42,56 +45,78 @@ public class SttServiceImpl implements SttService {
                 .build();
         sttMapper.insert(job);
 
+        String gcsUri = null;
+
         try {
-            // 1. 오디오 파일 유효성 검사 및 읽기
-            byte[] data = Files.readAllBytes(file.toPath());
-            if (data.length == 0) throw new RuntimeException("파일이 비어있습니다.");
+            if (!file.exists() || file.length() == 0) {
+                throw new RuntimeException("오디오 파일이 존재하지 않거나 비어있습니다.");
+            }
 
-            log.info("STT 시작 - 파일 크기: {} bytes", data.length);
-            ByteString audioBytes = ByteString.copyFrom(data);
+            log.info("STT 시작 (Long Audio) - file: {}, size: {} bytes",
+                    file.getAbsolutePath(), file.length());
 
+            // 1️⃣ GCS 업로드
+            String objectName = "recordings/"
+                    + userId + "/"
+                    + job.getCounselingResultId() + ".wav";
+
+            gcsUri = gcpUploader.uploadWav(
+                    objectName,
+                    file.toPath()
+            );
+
+            log.info("GCS 업로드 완료: {}", gcsUri);
+
+            // 2️⃣ RecognitionAudio (URI 기반)
             RecognitionAudio audio = RecognitionAudio.newBuilder()
-                    .setContent(audioBytes)
+                    .setUri(gcsUri)
                     .build();
 
-            // 2. 설정 최적화 (가장 범용적인 설정)
+            // 3️⃣ Long Audio 최적화 설정
             RecognitionConfig config = RecognitionConfig.newBuilder()
-                    // 브라우저 녹음 파일(WebM/Wav) 헤더를 자동 감지하도록 설정
-                    .setEncoding(RecognitionConfig.AudioEncoding.ENCODING_UNSPECIFIED)
                     .setLanguageCode("ko-KR")
-                    .setSampleRateHertz(16000) // 특정 포맷이 아니면 생략하는 것이 안전
-                    .setAudioChannelCount(1) // 아고라 녹음은 보통 단일 채널
+                    .setEncoding(RecognitionConfig.AudioEncoding.ENCODING_UNSPECIFIED)
+//                    .setSampleRateHertz(16000) // wav 실제 값과 반드시 일치
+                    .setAudioChannelCount(1)
+                    .setEnableAutomaticPunctuation(true)
+                    .setUseEnhanced(true)
+                    .setModel("latest_long")
                     .build();
 
-            // 3. Google 인증 로드
+            // 4️⃣ Google 인증
             Resource resource = new DefaultResourceLoader().getResource(keyPath);
             try (InputStream is = resource.getInputStream()) {
+
                 GoogleCredentials credentials = GoogleCredentials.fromStream(is);
                 SpeechSettings settings = SpeechSettings.newBuilder()
-                        .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+                        .setCredentialsProvider(
+                                FixedCredentialsProvider.create(credentials))
                         .build();
 
                 try (SpeechClient speechClient = SpeechClient.create(settings)) {
-                    log.info("Google STT 비동기 요청 전송 중...");
 
-                    // 4. 비동기 요청 실행 (긴 파일 대응)
-                    OperationFuture<LongRunningRecognizeResponse, LongRunningRecognizeMetadata> responseFuture =
+                    log.info("Google STT longRunningRecognize 요청 전송");
+
+                    OperationFuture<
+                            LongRunningRecognizeResponse,
+                            LongRunningRecognizeMetadata
+                            > future =
                             speechClient.longRunningRecognizeAsync(config, audio);
 
-                    // 5. 완료될 때까지 기다림 (여기서 블로킹되어야 로그가 남고 파일 삭제가 안전함)
-                    LongRunningRecognizeResponse response = responseFuture.get();
+                    // ⏳ 긴 파일 대기 (최대 30분)
+                    LongRunningRecognizeResponse response =
+                            future.get(30, TimeUnit.MINUTES);
 
-                    // 결과 추출 및 로그
                     String text = response.getResultsList().stream()
                             .map(r -> r.getAlternatives(0).getTranscript())
                             .collect(Collectors.joining(" "));
 
-                    if (text.trim().isEmpty()) {
-                        log.warn("STT 결과가 비어있습니다. 오디오 데이터 확인 필요.");
+                    if (text.isBlank()) {
+                        log.warn("STT 결과가 비어있음");
                         job.setStatus("FAIL");
                         job.setTexts("No speech detected.");
                     } else {
-                        log.info("STT 변환 완료: {}", text);
+                        log.info("STT 완료 (length={} chars)", text.length());
                         job.setStatus("SUCCESS");
                         job.setTexts(text);
                     }
@@ -99,27 +124,33 @@ public class SttServiceImpl implements SttService {
             }
 
         } catch (Exception e) {
-            log.error("STT 처리 중 치명적 오류: ", e);
+            log.error("STT 처리 중 오류 발생", e);
             job.setStatus("FAIL");
             job.setTexts("Error: " + e.getMessage());
+
         } finally {
-            // 모든 작업이 끝난 후 파일 삭제
+            // 5️⃣ 로컬 파일 삭제
             if (file.exists()) {
-                boolean isDeleted = file.delete();
-                log.info("임시 파일 삭제 여부: {}", isDeleted);
+                boolean deleted = file.delete();
+                log.info("로컬 wav 파일 삭제: {}", deleted);
             }
         }
 
-        // 6. DB 업데이트 및 후속 작업
+        // 6️⃣ DB 업데이트
         sttMapper.updateResult(job);
 
-        // 성공 시에만 요약 서비스 호출
+        // 7️⃣ 성공 시 요약 호출
         if ("SUCCESS".equals(job.getStatus())) {
-            summaryService.createSummary(job.getCounselingResultId(),job.getUserId(),job.getTexts());
+            summaryService.createSummary(
+                    job.getCounselingResultId(),
+                    job.getUserId(),
+                    job.getTexts()
+            );
         }
 
         return job;
     }
+
 
     @Override
     public CounselingResult getStt(Long counselingResultId) {

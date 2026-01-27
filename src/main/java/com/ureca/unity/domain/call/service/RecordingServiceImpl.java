@@ -1,6 +1,7 @@
 package com.ureca.unity.domain.call.service;
 
 import com.ureca.unity.domain.call.util.Converter;
+import com.ureca.unity.domain.call.util.GcsUploader;
 import com.ureca.unity.domain.stt.service.SttService;
 import com.ureca.unity.global.exception.CustomException;
 import com.ureca.unity.global.exception.ErrorCode;
