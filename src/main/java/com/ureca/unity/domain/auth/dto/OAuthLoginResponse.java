@@ -11,4 +11,5 @@ public class OAuthLoginResponse {
 
     private final TokenResponse token;
     private final boolean requiresOnboarding;
+    private final boolean termsAgreed;
 }

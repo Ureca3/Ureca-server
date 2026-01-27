@@ -3,6 +3,8 @@ package com.ureca.unity.domain.user.mapper;
 import com.ureca.unity.domain.user.model.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.time.Instant;
 import java.util.Optional;
 
 @Mapper
@@ -30,4 +32,10 @@ public interface UserMapper {
             @Param("email") String email,
             @Param("name") String name
     );
+
+    int updateTermsAgreedAt(
+            @Param("userId") Long userId,
+            @Param("termsAgreedAt") Instant termsAgreedAt
+    );
+
 }
