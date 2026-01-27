@@ -6,7 +6,7 @@
 <mapper namespace="com.ureca.unity.domain.summary.mapper.SummaryMapper">
 
     <!-- 요약 생성 -->
-    <insert id="insertSummary">
+    <insert id="insertSummary" useGeneratedKeys="true" keyProperty="summaryId">
         INSERT INTO summary (
             counseling_result_id,
             user_id,
