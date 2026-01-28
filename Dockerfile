@@ -17,6 +17,6 @@ RUN ./gradlew clean bootJar -x test
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-COPY --from=builder /app/build/libs/*.jar app.jar
+COPY --from=builder /app/build/libs/*-boot.jar app.jar
 
 CMD ["java", "-jar", "app.jar"]
