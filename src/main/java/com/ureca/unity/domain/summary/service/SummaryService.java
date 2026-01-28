@@ -26,14 +26,12 @@ public class SummaryService {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public void createSummary(
-            Long counselingResultId,
-            Long userId,
-            String counselingText
-    ) {
+    public void createSummary(Long counselingResultId, Long userId, String counselingText) {
         if (userId == null) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
+
+        summaryMapper.insertSummary(counselingResultId, userId);
 
         Long summaryId = summaryMapper.findLatestSummaryId(userId, counselingResultId);
 
@@ -59,13 +57,8 @@ public class SummaryService {
 
             summaryMapper.updateStatus(summaryId, "SUCCESS");
 
-            // 필요하면 반환형으로 바꾸거나, 로그용으로 사용
-            new SummaryResponse(
-                    gemini.getTitle(),
-                    gemini.getSubject(),
-                    keywords,
-                    points
-            );
+            // (현재는 반환값 사용 안 하니 생성만 유지)
+            new SummaryResponse(gemini.getTitle(), gemini.getSubject(), keywords, points);
 
         } catch (Exception e) {
             summaryMapper.updateStatus(summaryId, "FAIL");
@@ -76,72 +69,31 @@ public class SummaryService {
     @Transactional(readOnly = true)
     public List<SummaryListResponse> getMySummaries(Long userId) {
         return summaryMapper.findByUserId(userId).stream()
-                .map(summary -> {
-                    try {
-                        List<String> keywords =
-                                summary.getKeywords() != null
-                                        ? objectMapper.readValue(summary.getKeywords(),
-                                        new TypeReference<List<String>>() {})
-                                        : List.of();
-
-                        return new SummaryListResponse(
-                                summary.getSummaryId(),
-                                summary.getTitle(),
-                                summary.getStatus(),
-                                keywords,
-                                summary.getCreatedAt()
-                        );
-                    } catch (Exception e) {
-                        throw new IllegalStateException(e);
-                    }
-                })
+                .map(this::toListResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public List<SummaryListResponse> getBookmarkedSummaries(Long userId) {
         return summaryMapper.findBookmarkedByUserId(userId).stream()
-                .map(summary -> {
-                    try {
-                        List<String> keywords =
-                                summary.getKeywords() != null
-                                        ? objectMapper.readValue(summary.getKeywords(),
-                                        new TypeReference<List<String>>() {})
-                                        : List.of();
-
-                        return new SummaryListResponse(
-                                summary.getSummaryId(),
-                                summary.getTitle(),
-                                summary.getStatus(),
-                                keywords,
-                                summary.getCreatedAt()
-                        );
-                    } catch (Exception e) {
-                        throw new IllegalStateException(e);
-                    }
-                })
+                .map(this::toListResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public SummaryDetailResponse getSummaryDetail(Long summaryId) {
         SummaryModel summary = summaryMapper.findById(summaryId);
-
-        if (summary == null) {
-            return null;
-        }
+        if (summary == null) return null;
 
         try {
             List<String> keywords =
                     summary.getKeywords() != null
-                            ? objectMapper.readValue(summary.getKeywords(),
-                            new TypeReference<List<String>>() {})
+                            ? objectMapper.readValue(summary.getKeywords(), new TypeReference<List<String>>() {})
                             : List.of();
 
             List<String> points =
                     summary.getPoints() != null
-                            ? objectMapper.readValue(summary.getPoints(),
-                            new TypeReference<List<String>>() {})
+                            ? objectMapper.readValue(summary.getPoints(), new TypeReference<List<String>>() {})
                             : List.of();
 
             return new SummaryDetailResponse(
@@ -154,21 +106,36 @@ public class SummaryService {
                     summary.getIsBookmarked(),
                     summary.getCreatedAt()
             );
-
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
     }
 
     @Transactional
-    public boolean toggleBookmark(Long summaryId) {
+    public void toggleBookmark(Long summaryId) {
         Boolean isBookmarked = summaryMapper.findBookmarkStatus(summaryId);
-
         if (isBookmarked == null) {
             throw new IllegalArgumentException("summary not found");
         }
+        summaryMapper.updateBookmark(summaryId, !isBookmarked);
+    }
 
-        int done=summaryMapper.updateBookmark(summaryId, !isBookmarked);
-        return done>0;
+    private SummaryListResponse toListResponse(SummaryModel summary) {
+        try {
+            List<String> keywords =
+                    summary.getKeywords() != null
+                            ? objectMapper.readValue(summary.getKeywords(), new TypeReference<List<String>>() {})
+                            : List.of();
+
+            return new SummaryListResponse(
+                    summary.getSummaryId(),
+                    summary.getTitle(),
+                    summary.getStatus(),
+                    keywords,
+                    summary.getCreatedAt()
+            );
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 }
