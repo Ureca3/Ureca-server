@@ -36,12 +36,17 @@ public class CookieUtils {
     }
 
     public static Cookie deleteRefreshTokenCookie(boolean secure, String path, String sameSite) {
+        String safePath = (path == null || path.isBlank()) ? PATH : path;
+
+        String normalizedSameSite =
+                (sameSite != null && "Strict".equalsIgnoreCase(sameSite)) ? "Strict" : "Lax";
+
         Cookie cookie = new Cookie(REFRESH_TOKEN, null);
         cookie.setHttpOnly(true);
         cookie.setSecure(secure);
-        cookie.setPath(path);
+        cookie.setPath(safePath);
         cookie.setMaxAge(0);
-        cookie.setAttribute("SameSite", sameSite); // "Lax" or "Strict"
+        cookie.setAttribute("SameSite", normalizedSameSite);
         return cookie;
     }
 
