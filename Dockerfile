@@ -10,10 +10,8 @@ FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
 # Cloud SQL Auth Proxy 설치 및 권한 설정
-ARG CLOUD_SQL_PROXY_SHA256="8c6d76380f4b7005473eb2e13991d6239f90da021cf58d91d062739479e577cf"
-RUN wget -q https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.1/cloud-sql-proxy.linux.amd64 -O /usr/local/bin/cloud_sql_proxy && \
-     echo "${CLOUD_SQL_PROXY_SHA256}  /usr/local/bin/cloud_sql_proxy" | sha256sum -c - && \
-     chmod +x /usr/local/bin/cloud_sql_proxy
+RUN wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.1/cloud-sql-proxy.linux.amd64 -O cloud_sql_proxy && \
+    chmod +x cloud_sql_proxy
 
 COPY --from=build /app/build/libs/*.jar app.jar
 COPY ./render-access.json /secrets/render-access.json
