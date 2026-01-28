@@ -19,4 +19,4 @@ WORKDIR /app
 
 COPY --from=builder /app/build/libs/*.jar app.jar
 
-CMD ["java", "-jar", "build/libs/app.jar"]
+CMD ["java", "-jar", "app.jar"]
