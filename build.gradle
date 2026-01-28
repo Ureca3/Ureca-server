@@ -9,6 +9,7 @@ version = '0.0.1-SNAPSHOT'
 description = 'unity'
 
 bootJar {
+    archiveFileName="app.jar"
     mainClass = 'com.ureca.unity.UnityApplication'
 }
 
