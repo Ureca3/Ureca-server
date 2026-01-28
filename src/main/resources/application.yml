@@ -28,8 +28,10 @@ server:
 logging:
   level:
     root: info
-    com.ureca.unity: debug
-    com.zaxxer.hikari.pool: info
+    com:
+      zaxxer:
+        hikari: DEBUG
+    org.springframework.jdbc: DEBUG
 
 springdoc:
   swagger-ui:
