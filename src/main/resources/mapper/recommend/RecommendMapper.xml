@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ureca.unity.domain.recommend.mapper.RecommendMapper">
+
+  <delete id="deleteItems">
+    DELETE FROM recommend WHERE summary_id = #{summaryId}
+  </delete>
+
+  <insert id="insertItems">
+    INSERT INTO recommend
+    (summary_id, product_id, rank_no, score, created_at)
+    VALUES
+    <foreach collection="items" item="it" index="idx" separator=",">
+      (#{summaryId}, #{it.productId}, #{it.rankNo}, #{it.score}, NOW())
+    </foreach>
+  </insert>
+
+  <select id="selectBySummaryId" resultType="com.ureca.unity.domain.recommend.dto.RecommendItem">
+    SELECT
+      r.product_id AS productId,
+      r.rank_no AS rankNo,
+      r.score,
+      p.name AS name,
+      p.price,
+      p.img,
+      p.link,
+      c.category_id AS categoryId
+    FROM recommend r
+           JOIN product p ON r.product_id = p.product_id
+           JOIN category c ON p.category_id = c.category_id
+    WHERE r.summary_id = #{summaryId}
+    ORDER BY r.rank_no ASC
+  </select>
+
+  <select id="selectRandomByCategory" resultType="com.ureca.unity.domain.recommend.dto.RecommendItem">
+    SELECT
+      p.product_id AS productId,
+      p.name AS name,
+      p.price AS price,
+      p.img AS img,
+      p.link AS link,
+      p.category_id AS categoryId,
+      0 AS score,
+      0 AS rankNo
+    FROM product p
+    WHERE p.category_id = #{categoryId}
+    ORDER BY RAND()
+      LIMIT 5
+  </select>
+</mapper>
+
