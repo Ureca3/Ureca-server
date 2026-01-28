@@ -34,7 +34,7 @@ public class SummaryController {
         return summaryService.getSummaryDetail(summaryId);
     }
 
-    @GetMapping("/{summaryId}/bookmark")
+    @PostMapping("/{summaryId}/bookmark")
     public ResponseEntity<Boolean> toggleBookmark(
             @PathVariable Long summaryId
     ){
