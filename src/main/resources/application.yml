@@ -70,7 +70,7 @@ oauth:
 
 jwt:
   issuer: unity
-  secret: "CHANGE_ME_TO_A_LONG_RANDOM_SECRET_>=_32bytes"
+  secret: ${JWT_SECRET}
   access-expiration-seconds: 3600       # 1시간
   refresh-expiration-seconds: 604800    # 7일
 

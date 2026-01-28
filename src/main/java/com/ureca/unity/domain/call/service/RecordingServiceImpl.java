@@ -185,10 +185,12 @@ public class RecordingServiceImpl implements RecordingService {
 
         } catch (Exception e) {
             log.error("[Agora] Stop 실패: {}", e.getMessage());
-            job.setStatus("FAIL");
-            sttMapper.updateResult(job);
-            Long summaryId = summaryMapper.findLatestSummaryId(longUserId, job.getCounselingResultId());
-            summaryMapper.updateStatus(summaryId, "FAIL");
+            if(jobPersisted){
+                job.setStatus("FAIL");
+                sttMapper.updateResult(job);
+                Long summaryId = summaryMapper.findLatestSummaryId(longUserId, job.getCounselingResultId());
+                if(summaryId!=null)summaryMapper.updateStatus(summaryId, "FAIL");
+            }
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
