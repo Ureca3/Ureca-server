@@ -8,6 +8,10 @@ group = 'com.ureca'
 version = '0.0.1-SNAPSHOT'
 description = 'unity'
 
+bootJar {
+    mainClass = 'com.ureca.unity.UnityApplication'
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
