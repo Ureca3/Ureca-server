@@ -1,6 +1,8 @@
 FROM gradle:jdk17-jammy AS build
 COPY --chown=gradle:gradle . /app
 WORKDIR /app
+
+RUN chmod +x gradlew
 RUN ./gradlew build --no-daemon
 
 FROM eclipse-temurin:17-jdk-jammy
