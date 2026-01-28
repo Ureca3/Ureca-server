@@ -138,8 +138,14 @@ public class RecordingServiceImpl implements RecordingService {
                 .counselingType("CALL")
                 .status("LOADING")
                 .build();
-        sttMapper.insert(job);
-        summaryMapper.insertSummary(job.getCounselingResultId(), longUserId);
+        boolean jobPersisted=false;
+        try{
+            sttMapper.insert(job);
+            summaryMapper.insertSummary(job.getCounselingResultId(), longUserId);
+            jobPersisted=true;
+        }catch (Exception e){
+            log.error("결과 저장할 DB 연결 실패, 녹음 종료 진행.",e);
+        }
 
         Map<String, Object> body = Map.of(
                 "cname", channelName,
@@ -155,6 +161,9 @@ public class RecordingServiceImpl implements RecordingService {
                     .bodyToMono(Void.class)
                     .block(Duration.ofSeconds(10));
             log.info("[Agora] Stop 성공");
+            if (!jobPersisted) {
+                throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+            }
 
             //s3의 파일->wav로 변경->stt
             CompletableFuture.runAsync(() -> {
