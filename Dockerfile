@@ -17,4 +17,4 @@ COPY --from=build /app/build/libs/*.jar app.jar
 COPY ./render-access.json /secrets/render-access.json
 RUN chmod 400 /secrets/render-access.json
 
-ENTRYPOINT ["sh", "-c", "./cloud_sql_proxy --address 127.0.0.1 --port 3306 --credentials-file /secrets/render-access.json folkloric-clock-391008:asia-northeast3:ureca-3-unity & sleep 5; java -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "./cloud_sql_proxy --address 127.0.0.1 --port 3306 --credentials-file /secrets/render-access.json folkloric-clock-391008:asia-northeast3:ureca-3-unity & sleep 30; java -jar app.jar"]
