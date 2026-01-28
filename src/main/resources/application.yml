@@ -14,8 +14,8 @@ spring:
       minimum-idle: 5
       connection-timeout: 5000
       connection-init-sql: SELECT 1
-      idle-timeout: 300000
-      max-lifetime: 600000
+      idle-timeout: 600000
+      max-lifetime: 1800000
       auto-commit: true
 
 mybatis:
@@ -28,10 +28,8 @@ server:
 logging:
   level:
     root: info
-    com:
-      zaxxer:
-        hikari: DEBUG
-    org.springframework.jdbc: DEBUG
+    com.ureca.unity: debug
+    com.zaxxer.hikari.pool: info
 
 springdoc:
   swagger-ui:
