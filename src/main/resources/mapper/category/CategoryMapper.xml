@@ -6,6 +6,7 @@
 <mapper namespace="com.ureca.unity.domain.category.mapper.CategoryMapper">
   <select id="selectAll" resultType="com.ureca.unity.domain.category.dto.Category">
     SELECT category_id AS categoryId, name FROM category
+    ORDER BY category_id
   </select>
 </mapper>
 
