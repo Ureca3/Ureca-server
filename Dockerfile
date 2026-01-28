@@ -10,12 +10,11 @@ FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
 # Cloud SQL Auth Proxy 설치 및 권한 설정
-RUN apt-get update && apt-get install -y wget && \
-    wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy && \
+RUN wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.1/cloud-sql-proxy.linux.amd64 -O cloud_sql_proxy && \
     chmod +x cloud_sql_proxy
 
 COPY --from=build /app/build/libs/*.jar app.jar
 COPY ./render-access.json /secrets/render-access.json
 RUN chmod 400 /secrets/render-access.json
 
-ENTRYPOINT ["sh", "-c", "./cloud_sql_proxy -instances=folkloric-clock-391008:asia-northeast3:ureca-3-unity=tcp:0.0.0.0:3306 -credential_file=/secrets/render-access.json & sleep 5; java -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "./cloud_sql_proxy --address 0.0.0.0 --port 3306 --credentials-file /secrets/render-access.json folkloric-clock-391008:asia-northeast3:ureca-3-unity & sleep 5; java -jar app.jar"]
