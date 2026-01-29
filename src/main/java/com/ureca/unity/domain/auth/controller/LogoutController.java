@@ -20,7 +20,7 @@ public class LogoutController {
 
     private final LogoutService logoutService;
 
-    @Value("${cookie.secure:false}")
+    @Value("${cookie.secure}")
     private boolean cookieSecure;
 
     @PostMapping("/logout")

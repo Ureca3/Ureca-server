@@ -28,7 +28,7 @@ public class OAuthController {
     private final OAuthService oAuthService;
     private final JwtProperties jwtProperties;
 
-    @Value("${cookie.secure:false}")
+    @Value("${cookie.secure}")
     private boolean cookieSecure;
 
     @PostMapping("/login/{provider}")

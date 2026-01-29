@@ -29,7 +29,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final JwtProperties jwtProperties;
     private final JwtProvider jwtProvider;
 
-    @Value("${cookie.secure:false}")
+    @Value("${cookie.secure}")
     private boolean cookieSecure;
 
     @Transactional

@@ -21,7 +21,7 @@ public class UserController {
 
     private final UserService userService;
 
-    @Value("${cookie.secure:false}")
+    @Value("${cookie.secure}")
     private boolean cookieSecure;
 
     @PostMapping("/withdrawal")
