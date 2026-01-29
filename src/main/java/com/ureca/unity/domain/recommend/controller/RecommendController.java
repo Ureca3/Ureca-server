@@ -45,7 +45,6 @@ public class RecommendController {
   // 전체 추천 조회
   @GetMapping("/me")
   public RecommendResponse getAll() {
-    // undefined 'currentUserId' 제거 — 서비스의 카테고리 기반 조회 재사용
     return recommendService.getRandomByCategory();
   }
 }

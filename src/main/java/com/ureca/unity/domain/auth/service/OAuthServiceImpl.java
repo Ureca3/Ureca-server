@@ -56,7 +56,6 @@ public class OAuthServiceImpl implements OAuthService {
                                         );
                                     }
 
-                                    // 재가입이면 true, 기존이면 false
                                     return createLoginResult(anyUser.getId(), wasDeleted, provider.value(), tokenInfo);
                                 })
                                 .orElseGet(() -> {

@@ -25,7 +25,6 @@ public class JwtProvider {
         );
     }
 
-    /* JWT 검증 + userId(subject) 추출 */
     public Long getUserId(String token, String expectedType) {
         Claims claims = Jwts.parser()
                 .verifyWith(key)

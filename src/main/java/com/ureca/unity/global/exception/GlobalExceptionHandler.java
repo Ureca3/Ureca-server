@@ -15,7 +15,6 @@ public class GlobalExceptionHandler {
     private static final Logger log =
             LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    /* 잘못된 요청 파라미터 (provider 등) */
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleIllegalArgumentException(IllegalArgumentException e) {
@@ -23,7 +22,6 @@ public class GlobalExceptionHandler {
         return "잘못된 요청입니다.";
     }
 
-    /* 입력값 검증 실패 (@NotBlank 등) */
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleValidationException(ConstraintViolationException e) {
@@ -31,7 +29,6 @@ public class GlobalExceptionHandler {
         return "입력값 검증에 실패했습니다.";
     }
 
-    /* 그 외 서버 내부 오류 */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String handleException(Exception e) {
