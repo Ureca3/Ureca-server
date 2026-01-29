@@ -3,7 +3,6 @@ package com.ureca.unity.domain.recommend.service;
 import com.ureca.unity.domain.category.mapper.CategoryMapper;
 import com.ureca.unity.domain.recommend.client.RecommendClient;
 import com.ureca.unity.domain.recommend.dto.RecommendItem;
-import com.ureca.unity.domain.recommend.dto.RecommendRequest;
 import com.ureca.unity.domain.recommend.dto.RecommendResponse;
 import com.ureca.unity.domain.recommend.mapper.RecommendMapper;
 import com.ureca.unity.global.exception.CustomException;
@@ -31,15 +30,11 @@ public class RecommendService {
   // 추천 생성 + 저장
   @Transactional
   public RecommendResponse generateAndSave(long summaryId) {
-    RecommendRequest req = new RecommendRequest();
-    req.setSummaryId(summaryId);
-    req.setK(5);
-
     RecommendResponse response;
 
     // FastAPI 호출
     try {
-      response = recommendClient.recommend(req);
+      response = recommendClient.recommend(summaryId, 5);
     } catch (Exception e) {
       throw new CustomException(ErrorCode.FASTAPI_CALL_FAILED);
     }
@@ -58,7 +53,7 @@ public class RecommendService {
     List<RecommendItem> items = response.getItems();
     items.sort((a, b) -> Double.compare(b.getScore(), a.getScore()));
     for (int i = 0; i < items.size(); i++) {
-      items.get(i).setRankNo(i); // 0,1,2,... 순서대로
+      items.get(i).setRank(i); // 0,1,2,... 순서대로
     }
 
     // DB 삽입

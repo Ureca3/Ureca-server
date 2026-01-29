@@ -14,7 +14,7 @@
     (summary_id, product_id, rank_no, score, created_at)
     VALUES
     <foreach collection="items" item="it" index="idx" separator=",">
-      (#{summaryId}, #{it.productId}, #{it.rankNo}, #{it.score}, NOW())
+      (#{summaryId}, #{it.productId}, #{it.rank}, #{it.score}, NOW())
     </foreach>
   </insert>
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ureca.unity.domain.gemini.dto.GeminiSummaryResponse;
 import com.ureca.unity.domain.gemini.service.GeminiSummaryService;
+import com.ureca.unity.domain.recommend.service.RecommendService;
 import com.ureca.unity.domain.summary.dto.response.SummaryDetailResponse;
 import com.ureca.unity.domain.summary.dto.response.SummaryListResponse;
 import com.ureca.unity.domain.summary.dto.response.SummaryResponse;
@@ -12,8 +13,12 @@ import com.ureca.unity.domain.summary.model.SummaryModel;
 import com.ureca.unity.global.exception.CustomException;
 import com.ureca.unity.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 
@@ -21,7 +26,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SummaryService {
 
+    private static final Logger log = LoggerFactory.getLogger(SummaryService.class);
     private final GeminiSummaryService geminiSummaryService;
+    private final RecommendService recommendService;
     private final SummaryMapper summaryMapper;
     private final ObjectMapper objectMapper;
 
@@ -56,7 +63,26 @@ public class SummaryService {
             );
 
             summaryMapper.updateStatus(summaryId, "SUCCESS");
-
+            if (TransactionSynchronizationManager.isActualTransactionActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            recommendService.generateAndSave(summaryId);
+                        } catch (Exception e) {
+                            // 추천 실패는 요약 성공을 뒤집지 않음 (중요)
+                            log.error("추천 생성 실패 summaryId={}", summaryId, e);
+                        }
+                    }
+                });
+            } else {
+                try {
+                    recommendService.generateAndSave(summaryId);
+                } catch (Exception e) {
+                    // 추천 실패는 요약 성공을 뒤집지 않음 (중요)
+                    log.error("추천 생성 실패 summaryId={}", summaryId, e);
+                }
+            }
             // (현재는 반환값 사용 안 하니 생성만 유지)
             new SummaryResponse(gemini.getTitle(), gemini.getSubject(), keywords, points);
 
