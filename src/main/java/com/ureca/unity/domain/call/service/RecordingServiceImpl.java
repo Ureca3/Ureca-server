@@ -40,7 +40,6 @@ public class RecordingServiceImpl implements RecordingService {
     private final CounselingResultMapper sttMapper;
     private final SummaryMapper summaryMapper;
 
-    //@Value 주입이 완료된 후, 호출 시점에 WebClient 빌드
     private WebClient getWebClient() {
         String authStr = customerId + ":" + customerSecret;
         String auth = Base64.getEncoder().encodeToString(authStr.getBytes());
@@ -55,7 +54,6 @@ public class RecordingServiceImpl implements RecordingService {
     @Override
     public String acquire(String channelName, String uid) {
         log.info("[Agora] Acquire 요청 시작 - channel: {}, uid: {}", channelName, uid);
-        // 전체 Body
         Map<String, Object> body = Map.of(
                 "cname",channelName,
                 "uid", uid,
@@ -165,10 +163,10 @@ public class RecordingServiceImpl implements RecordingService {
                 throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
             }
 
-            //s3의 파일->wav로 변경->stt
+            //s3 파일->wav로 변경->stt
             CompletableFuture.runAsync(() -> {
                 try {
-                    Thread.sleep(10000); //TODO:차후 lambda로 호출되면 동작하도록 개선
+                    Thread.sleep(10000); //차후 lambda로 호출되면 동작하도록 개선
                     String m3u8Url = String.format("https://%s.s3.ap-northeast-2.amazonaws.com/recordings/%s/%s_%s.m3u8",
                             s3Bucket, channelName, sid, channelName);
                     log.info("변환 시작: {}", m3u8Url);

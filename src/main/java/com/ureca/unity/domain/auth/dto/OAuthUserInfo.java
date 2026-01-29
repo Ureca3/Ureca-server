@@ -9,8 +9,8 @@ import lombok.Getter;
 @Builder
 public class OAuthUserInfo {
 
-    private final String provider;     // google / naver / kakao
-    private final String providerId;   // OAuth 제공자 고유 ID
-    private final String email;        // nullable 가능
+    private final String provider;
+    private final String providerId;
+    private final String email;
     private final String name;
 }

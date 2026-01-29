@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 public class OAuthToken {
     private Long id;
     private Long userId;
-    private String provider;      // google / naver / kakao
+    private String provider;
     private String accessToken;
-    private String refreshToken;  // nullable
-    private LocalDateTime expiresAt;    // nullable
+    private String refreshToken;
+    private LocalDateTime expiresAt;
 }

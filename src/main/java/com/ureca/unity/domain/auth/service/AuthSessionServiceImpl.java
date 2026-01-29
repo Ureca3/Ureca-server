@@ -29,7 +29,6 @@ public class AuthSessionServiceImpl implements AuthSessionService {
     public MeResponse getMe(HttpServletRequest request) {
         String refreshToken = extractRefreshToken(request);
 
-        // (1) refresh JWT 서명 + type 검증
         Long jwtUserId;
         try {
             jwtUserId = jwtProvider.getUserId(refreshToken, "refresh");
@@ -37,22 +36,18 @@ public class AuthSessionServiceImpl implements AuthSessionService {
             throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
 
-        // (2) DB에 저장된 토큰인지 확인
         RefreshToken saved = refreshTokenMapper.findByToken(refreshToken)
                 .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_INVALID));
 
-        // (3) 만료 체크
         if (saved.getExpiresAt() == null || saved.getExpiresAt().isBefore(Instant.now())) {
             refreshTokenMapper.deleteByToken(refreshToken);
             throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
         }
 
-        // (4) 토큰의 userId 일치 체크
         if (!saved.getUserId().equals(jwtUserId)) {
             throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
 
-        // (5) 유저 조회
         User user = userMapper.findById(saved.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 

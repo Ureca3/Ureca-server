@@ -38,7 +38,7 @@ public class GoogleOAuthClient implements OAuthClient {
 
     @Override
     public OAuthAuthResult authenticate(String authorizationCode) {
-        Map<String, Object> token = getTokenResponse(authorizationCode); // access/refresh/expires_in
+        Map<String, Object> token = getTokenResponse(authorizationCode);
 
         String accessToken = token.get("access_token").toString();
         String refreshToken = token.get("refresh_token") != null ? String.valueOf(token.get("refresh_token")) : null;
@@ -48,7 +48,6 @@ public class GoogleOAuthClient implements OAuthClient {
                 expiresIn = Long.valueOf(String.valueOf(token.get("expires_in")));
             } catch (NumberFormatException e) {
                 log.warn("Google token response has non-numeric expires_in: {}", token.get("expires_in"));
-                // expires_in 파싱 실패 시 null로 처리
             }
         }
 

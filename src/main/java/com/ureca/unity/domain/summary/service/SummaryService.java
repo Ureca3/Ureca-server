@@ -57,9 +57,7 @@ public class SummaryService {
 
             summaryMapper.updateStatus(summaryId, "SUCCESS");
 
-            // (현재는 반환값 사용 안 하니 생성만 유지)
             new SummaryResponse(gemini.getTitle(), gemini.getSubject(), keywords, points);
-
         } catch (Exception e) {
             summaryMapper.updateStatus(summaryId, "FAIL");
             throw new IllegalStateException(e);

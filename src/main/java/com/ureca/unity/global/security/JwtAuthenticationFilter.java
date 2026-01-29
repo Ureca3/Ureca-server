@@ -50,7 +50,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = resolveToken(request);
 
-        // 1. 토큰이 아예 없는 경우
         if (token == null) {
             request.setAttribute("authError", ErrorCode.TOKEN_MISSING);
             filterChain.doFilter(request, response);
@@ -58,16 +57,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         try {
-            // 2. 토큰 검증 시도
             Authentication authentication = jwtProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
         } catch (ExpiredJwtException e) {
-            // 3. 토큰 만료
             request.setAttribute("authError", ErrorCode.TOKEN_EXPIRED);
-
         } catch (JwtException | IllegalArgumentException e) {
-            // 4. 토큰 위조 / 변조
             request.setAttribute("authError", ErrorCode.INVALID_TOKEN);
         }
 
