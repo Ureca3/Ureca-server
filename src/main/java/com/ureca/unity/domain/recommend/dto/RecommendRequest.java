@@ -6,5 +6,5 @@ import lombok.Setter;
 @Getter @Setter
 public class RecommendRequest {
   private long summaryId;
-  private int k = 5; //기본값
+  private int k = 5;
 }

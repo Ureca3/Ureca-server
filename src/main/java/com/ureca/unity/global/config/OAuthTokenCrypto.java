@@ -15,15 +15,13 @@ public class OAuthTokenCrypto {
 
     private static final String ALG = "AES";
     private static final String TRANSFORM = "AES/GCM/NoPadding";
-    private static final int IV_LEN = 12;          // GCM 권장 12 bytes
+    private static final int IV_LEN = 12;
     private static final int TAG_BITS = 128;
 
     private final byte[] keyBytes;
     private final SecureRandom random = new SecureRandom();
 
     public OAuthTokenCrypto(@Value("${security.oauth-token.secret}") String secret) {
-        // 최소 수정 버전: secret을 16/24/32 bytes로 맞춰 쓰는 걸 권장
-        // 여기서는 "UTF-8 바이트" 기준으로 32바이트로 잘라/패딩 처리
         byte[] raw = secret.getBytes(StandardCharsets.UTF_8);
         this.keyBytes = new byte[32];
         for (int i = 0; i < this.keyBytes.length; i++) {
@@ -43,7 +41,6 @@ public class OAuthTokenCrypto {
 
             byte[] ct = cipher.doFinal(plain.getBytes(StandardCharsets.UTF_8));
 
-            // 저장 포맷: base64( iv + ciphertext )
             byte[] out = new byte[iv.length + ct.length];
             System.arraycopy(iv, 0, out, 0, iv.length);
             System.arraycopy(ct, 0, out, iv.length, ct.length);
@@ -58,7 +55,7 @@ public class OAuthTokenCrypto {
         if (enc == null) return null;
         try {
             byte[] in = Base64.getDecoder().decode(enc);
-            if (in.length < IV_LEN + 1) return enc; // 방어: 평문이 들어온 경우 그냥 반환
+            if (in.length < IV_LEN + 1) return enc;
 
             byte[] iv = new byte[IV_LEN];
             byte[] ct = new byte[in.length - IV_LEN];
@@ -73,7 +70,6 @@ public class OAuthTokenCrypto {
             byte[] pt = cipher.doFinal(ct);
             return new String(pt, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            // 방어: 기존 데이터가 평문/다른 포맷이면 그냥 원문 반환(마이그레이션 단계에서 유용)
             return enc;
         }
     }

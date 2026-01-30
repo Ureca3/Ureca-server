@@ -6,11 +6,16 @@ import com.ureca.unity.domain.call.dto.response.RecordingResponse;
 import com.ureca.unity.domain.call.service.RecordingServiceImpl;
 import com.ureca.unity.global.exception.CustomException;
 import com.ureca.unity.global.exception.ErrorCode;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(
+        name = "3. Call",
+        description = "전화 연결"
+)
 @RestController
 @RequestMapping("/api/recording")
 @RequiredArgsConstructor

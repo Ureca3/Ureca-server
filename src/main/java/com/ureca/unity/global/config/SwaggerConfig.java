@@ -17,8 +17,8 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .tags(List.of(
                         new io.swagger.v3.oas.models.tags.Tag().name("1. Auth"),
-                        new io.swagger.v3.oas.models.tags.Tag().name("2. Exam"),
-                        new io.swagger.v3.oas.models.tags.Tag().name("3. STT"),
+                        new io.swagger.v3.oas.models.tags.Tag().name("2. Policy"),
+                        new io.swagger.v3.oas.models.tags.Tag().name("3. Call"),
                         new io.swagger.v3.oas.models.tags.Tag().name("4. Summary")
                 ))
                 .components(new Components()
