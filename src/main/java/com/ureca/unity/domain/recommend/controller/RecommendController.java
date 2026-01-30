@@ -4,6 +4,7 @@ import com.ureca.unity.domain.recommend.dto.RecommendResponse;
 import com.ureca.unity.domain.recommend.service.RecommendService;
 import com.ureca.unity.global.exception.CustomException;
 import com.ureca.unity.global.exception.ErrorCode;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(
+        name = "5. Recommend",
+        description = "추천 로직"
+)
 @RestController
 @RequestMapping("/api/v1/recommend")
 @RequiredArgsConstructor

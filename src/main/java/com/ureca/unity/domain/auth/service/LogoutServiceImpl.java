@@ -18,7 +18,6 @@ public class LogoutServiceImpl implements LogoutService {
     @Override
     public void logout(String refreshToken) {
 
-// refreshToken 없어도 로그아웃은 성공
         if (refreshToken == null || refreshToken.isBlank()) {
             log.info("Logout: no refreshToken provided");
             return;

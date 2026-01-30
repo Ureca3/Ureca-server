@@ -36,7 +36,7 @@ public class LogoutController {
                 CookieUtils.deleteRefreshTokenCookie(cookieSecure)
         );
 
-        // 2. 레거시 쿠키(Path=/api/auth)도 삭제 (과거 잔재 청소)
+        // 2. 레거시 쿠키(Path=/api/auth)도 삭제
         response.addCookie(CookieUtils.deleteRefreshTokenCookie(cookieSecure, "/api/auth", "Lax"));
         response.addCookie(CookieUtils.deleteRefreshTokenCookie(cookieSecure, "/api/auth", "Strict"));
     }

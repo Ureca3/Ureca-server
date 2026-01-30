@@ -107,30 +107,4 @@ public class RecommendService {
     response.setItems(results);
     return response;
   }
-
-
-//  public List<RecommendItem> getRecommendationsWithFallback(long summaryId) {
-//    List<RecommendItem> items = recommendMapper.selectBySummaryId(summaryId);
-//
-//    // 추천 없으면 빈 리스트 처리
-//    if (items == null) {
-//      items = new ArrayList<>();
-//    }
-//
-//    // 카테고리별로 그룹화
-//    Map<Integer, List<RecommendItem>> byCategory = items.stream()
-//      .collect(Collectors.groupingBy(RecommendItem::getCategoryId));
-//
-//    List<Category> categories = categoryMapper.selectAll();
-//    for (Category c : categories) {
-//      if (!byCategory.containsKey(c.getCategoryId()) || byCategory.get(c.getCategoryId()).isEmpty()) {
-//        // 추천 없으면 fallback
-//        List<RecommendItem> fallback = recommendMapper.selectRandomByCategory(c.getCategoryId());
-//        items.addAll(fallback);
-//      }
-//    }
-//
-//    // score=0, rankNo=0인 fallback도 이미 Mapper에서 설정됨
-//    return items;
-//  }
 }

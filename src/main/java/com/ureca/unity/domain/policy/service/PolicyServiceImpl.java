@@ -22,7 +22,6 @@ public class PolicyServiceImpl implements PolicyService {
         User user = userMapper.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // 이미 동의했으면 아무 것도 안 함 (멱등성)
         if (user.getTermsAgreedAt() != null) {
             return;
         }

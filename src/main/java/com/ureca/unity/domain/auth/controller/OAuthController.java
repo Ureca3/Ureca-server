@@ -39,7 +39,7 @@ public class OAuthController {
     ) {
         OAuthLoginResult result = oAuthService.login(OAuthProvider.from(provider), code);
 
-        // 1. 레거시(/api/auth) 쿠키 제거 (예전 SameSite가 Strict였다면 Strict로 한 번 더)
+        // 1. 레거시(/api/auth) 쿠키 제거
         response.addCookie(CookieUtils.deleteRefreshTokenCookie(cookieSecure, "/api/auth", "Strict"));
         response.addCookie(CookieUtils.deleteRefreshTokenCookie(cookieSecure, "/api/auth", "Lax"));
 
